@@ -1,0 +1,30 @@
+{
+  "name": "defi-strategy-tee",
+  "version": "1.0.0",
+  "description": "Trusted Execution Environment module for DeFi strategy execution",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "test": "vitest --run"
+  },
+  "keywords": [
+    "iexec",
+    "tee",
+    "defi",
+    "strategy",
+    "execution"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ethers": "^6.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}
