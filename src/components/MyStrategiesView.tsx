@@ -3,6 +3,7 @@
  * 
  * Displays the user's purchased strategies with wallet information.
  * Shows only strategies that have been purchased by the connected wallet.
+ * Provides execution interface for owned strategies.
  * 
  * @component
  */
@@ -14,12 +15,15 @@ import { useAccount } from 'wagmi';
 import { Strategy } from '@/types/strategy';
 import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy } from '@/strategies';
 import StrategyCard from './StrategyCard';
+import StrategyExecutionModal from './StrategyExecutionModal';
+import { IExecExecutionService } from '@/services/IExecExecutionService';
+import { getStrategyDataProtectorService } from '@/services/StrategyDataProtectorService';
 
 /**
  * Props for the MyStrategiesView component
  */
 interface MyStrategiesViewProps {
-  /** Callback when a strategy is executed */
+  /** Callback when a strategy is executed (optional, for parent component notification) */
   onExecute?: (strategyId: string) => void;
 }
 
@@ -31,6 +35,7 @@ interface MyStrategiesViewProps {
  * - Displays only owned strategies
  * - Card-based layout matching marketplace
  * - Empty state when no strategies owned
+ * - Execution modal for configuring and running strategies
  * 
  * Note: Currently uses localStorage for tracking purchases (temporary).
  * Will be replaced with iExec Data Protector in Phase 2 for on-chain verification.
@@ -41,6 +46,14 @@ export default function MyStrategiesView({
   // State management
   const [ownedStrategies, setOwnedStrategies] = useState<Strategy[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Execution modal state
+  const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
+  const [isExecutionModalOpen, setIsExecutionModalOpen] = useState(false);
+  
+  // Services
+  const [executionService] = useState(() => new IExecExecutionService());
+  const [isServicesInitialized, setIsServicesInitialized] = useState(false);
   
   // Get wallet connection info
   const { address, isConnected } = useAccount();
@@ -100,12 +113,76 @@ export default function MyStrategiesView({
   }, [address, isConnected]);
 
   /**
+   * Initialize services when wallet is connected
+   * 
+   * Service Initialization:
+   * - Data Protector service for ownership verification
+   * - iExec Execution service for TEE execution
+   * - Both services require wallet provider
+   */
+  useEffect(() => {
+    const initializeServices = async () => {
+      if (!isConnected || !window.ethereum) {
+        setIsServicesInitialized(false);
+        return;
+      }
+
+      try {
+        console.log('[MyStrategies] Initializing services...');
+
+        // Initialize Data Protector service
+        const dataProtectorService = getStrategyDataProtectorService();
+        await dataProtectorService.initialize(window.ethereum);
+
+        // Initialize iExec Execution service
+        await executionService.initialize(dataProtectorService);
+
+        setIsServicesInitialized(true);
+        console.log('[MyStrategies] Services initialized successfully');
+      } catch (error) {
+        console.error('[MyStrategies] Failed to initialize services:', error);
+        setIsServicesInitialized(false);
+      }
+    };
+
+    initializeServices();
+  }, [isConnected, executionService]);
+
+  /**
    * Handles strategy execution
+   * Opens the execution modal for the selected strategy
    */
   const handleExecute = (strategyId: string) => {
+    // Find the strategy
+    const strategy = ownedStrategies.find(s => s.id === strategyId);
+    if (!strategy) {
+      console.error('[MyStrategies] Strategy not found:', strategyId);
+      return;
+    }
+
+    // Check if services are initialized
+    if (!isServicesInitialized) {
+      console.error('[MyStrategies] Services not initialized');
+      alert('Services are still initializing. Please wait a moment and try again.');
+      return;
+    }
+
+    // Open execution modal
+    setSelectedStrategy(strategy);
+    setIsExecutionModalOpen(true);
+
+    // Notify parent component if callback provided
     if (onExecute) {
       onExecute(strategyId);
     }
+  };
+
+  /**
+   * Handle execution modal close
+   */
+  const handleCloseExecutionModal = () => {
+    setIsExecutionModalOpen(false);
+    setSelectedStrategy(null);
   };
 
   // Show wallet connection prompt if not connected
@@ -278,6 +355,16 @@ export default function MyStrategiesView({
           </div>
         </div>
       </div>
+
+      {/* Execution Modal */}
+      {selectedStrategy && (
+        <StrategyExecutionModal
+          strategy={selectedStrategy}
+          isOpen={isExecutionModalOpen}
+          onClose={handleCloseExecutionModal}
+          executionService={executionService}
+        />
+      )}
     </div>
   );
 }
