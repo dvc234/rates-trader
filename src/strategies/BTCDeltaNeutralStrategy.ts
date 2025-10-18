@@ -42,16 +42,16 @@ export class BTCDeltaNeutralStrategy implements Strategy {
     const builder = new StrategyBuilder();
 
     this.operations = builder
-      // Check if BTC funding rate is favorable on Synthetix
+      // Check if BTC funding rate is favorable on Avantis
       .checkFundingRate('BTC/USDC', {
         minRate: 0.01, // Only execute if funding rate > 0.01%
-        exchange: 'synthetix-v3',
+        exchange: 'avantis',
         label: 'fundingCheck'
       })
-      // Open short perpetual position on Synthetix v3
+      // Open short perpetual position on Avantis
       .openShort('BTC/USDC', '50', 1, {
         isPercentage: true,
-        exchange: 'synthetix-v3',
+        exchange: 'avantis',
         label: 'shortPosition'
       })
       // Buy spot BTC via 1inch Fusion to hedge

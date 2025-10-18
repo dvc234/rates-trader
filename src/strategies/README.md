@@ -8,10 +8,10 @@ This directory contains strategy implementations that execute in the TEE (Truste
 Testing strategy for TEE validation - executes mock operations without real trades.
 
 ### 2. BTCDeltaNeutralStrategy
-Delta neutral funding arbitrage on BTC/USDC using Synthetix v3 (perpetuals) and 1inch Fusion (spot).
+Delta neutral funding arbitrage on BTC/USDC using Avantis (perpetuals) and 1inch Fusion (spot).
 
 ### 3. ETHDeltaNeutralStrategy
-Delta neutral funding arbitrage on ETH/USDC using Synthetix v3 (perpetuals) and 1inch Fusion (spot).
+Delta neutral funding arbitrage on ETH/USDC using Avantis (perpetuals) and 1inch Fusion (spot).
 
 ## Architecture
 
@@ -29,13 +29,13 @@ Delta neutral funding arbitrage on ETH/USDC using Synthetix v3 (perpetuals) and 
 - `SPOT_BUY` - Buy assets on spot market
 - `SPOT_SELL` - Sell assets on spot market
 
-#### Perpetual Positions (via Synthetix v3)
+#### Perpetual Positions (via Avantis)
 - `OPEN_LONG` - Open leveraged long position
 - `OPEN_SHORT` - Open leveraged short position
 - `CLOSE_LONG` - Close long position
 - `CLOSE_SHORT` - Close short position
 
-#### Market Analysis (via Synthetix v3)
+#### Market Analysis (via Avantis)
 - `CHECK_FUNDING_RATE` - Check perpetual funding rates
 - `CHECK_PRICE` - Check current price against threshold
 - `CHECK_LIQUIDITY` - Check market liquidity
@@ -49,7 +49,7 @@ Delta neutral funding arbitrage on ETH/USDC using Synthetix v3 (perpetuals) and 
 All operations specify which protocol to use via the `exchange` parameter:
 
 - **Spot Orders:** `exchange: '1inch-fusion'`
-- **Perpetual Orders:** `exchange: 'synthetix-v3'`
+- **Perpetual Orders:** `exchange: 'avantis'`
 
 See `src/config/protocols.ts` for protocol configurations.
 
@@ -63,16 +63,16 @@ import { StrategyBuilder } from '../types/strategyBuilder';
 const builder = new StrategyBuilder();
 
 const operations = builder
-  // Check funding rate on Synthetix v3
+  // Check funding rate on Avantis
   .checkFundingRate('ETH/USDC', {
     minRate: 0.01,
-    exchange: 'synthetix-v3',
+    exchange: 'avantis',
     label: 'fundingCheck'
   })
-  // Open short position on Synthetix v3
+  // Open short position on Avantis
   .openShort('ETH/USDC', '50', 1, {
     isPercentage: true,
-    exchange: 'synthetix-v3',
+    exchange: 'avantis',
     label: 'shortPosition'
   })
   // Hedge with spot buy via 1inch Fusion
@@ -96,7 +96,7 @@ const operations: StrategyOperation[] = [
     params: {
       ticker: 'BTC/USDC',
       minRate: 0.01,
-      exchange: 'synthetix-v3'
+      exchange: 'avantis'
     },
     label: 'fundingCheck'
   },
@@ -108,7 +108,7 @@ const operations: StrategyOperation[] = [
       size: '50',
       leverage: 1,
       isPercentage: true,
-      exchange: 'synthetix-v3'
+      exchange: 'avantis'
     },
     label: 'shortPosition'
   },
@@ -132,7 +132,7 @@ const operations: StrategyOperation[] = [
 **File:** `BTCDeltaNeutralStrategy.ts`
 
 Captures BTC funding rate profits while maintaining delta neutral exposure:
-1. Check BTC funding rate on Synthetix v3 (min 0.01%)
+1. Check BTC funding rate on Avantis (min 0.01%)
 2. Open short perpetual on BTC/USDC (50% capital, 1x leverage)
 3. Buy spot BTC via 1inch Fusion (50% capital)
 4. Collect funding payments while maintaining zero directional exposure
@@ -143,7 +143,7 @@ Captures BTC funding rate profits while maintaining delta neutral exposure:
 **File:** `ETHDeltaNeutralStrategy.ts`
 
 Captures ETH funding rate profits while maintaining delta neutral exposure:
-1. Check ETH funding rate on Synthetix v3 (min 0.01%)
+1. Check ETH funding rate on Avantis (min 0.01%)
 2. Open short perpetual on ETH/USDC (50% capital, 1x leverage)
 3. Buy spot ETH via 1inch Fusion (50% capital)
 4. Collect funding payments while maintaining zero directional exposure
@@ -196,7 +196,7 @@ All strategies are optimized for Base network and use USDC as the quote currency
 - **Trading Pairs:** BTC/USDC, ETH/USDC
 - **Stablecoin:** USDC (native to Base)
 - **Spot Protocol:** 1inch Fusion
-- **Perpetual Protocol:** Synthetix v3
+- **Perpetual Protocol:** Avantis
 
 ## Best Practices
 

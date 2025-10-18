@@ -5,7 +5,7 @@
  * 
  * Protocol Integration:
  * - Spot operations (spotBuy, spotSell) should use exchange: '1inch-fusion'
- * - Perpetual operations (openLong, openShort, etc.) should use exchange: 'synthetix-v3'
+ * - Perpetual operations (openLong, openShort, etc.) should use exchange: 'avantis'
  * - All pairs should use USDC as quote currency for Base network (e.g., 'BTC/USDC', 'ETH/USDC')
  */
 
@@ -32,11 +32,11 @@ import {
  * const operations = new StrategyBuilder()
  *   .checkFundingRate('ETH/USDC', { 
  *     minRate: 0.01, 
- *     exchange: 'synthetix-v3' 
+ *     exchange: 'avantis' 
  *   })
  *   .openShort('ETH/USDC', '50', 1, { 
  *     isPercentage: true,
- *     exchange: 'synthetix-v3' 
+ *     exchange: 'avantis' 
  *   })
  *   .spotBuy('ETH/USDC', '50', { 
  *     isPercentage: true,
@@ -124,12 +124,12 @@ export class StrategyBuilder {
   }
   
   /**
-   * Add an open long position operation (executes via Synthetix v3)
+   * Add an open long position operation (executes via Avantis)
    * @param ticker - Trading pair (e.g., 'ETH/USDC', 'BTC/USDC')
    * @param size - Position size
    * @param leverage - Leverage multiplier
    * @param options - Additional options
-   * @param options.exchange - Protocol to use (recommended: 'synthetix-v3')
+   * @param options.exchange - Protocol to use (recommended: 'avantis')
    */
   openLong(
     ticker: string,
@@ -166,12 +166,12 @@ export class StrategyBuilder {
   }
   
   /**
-   * Add an open short position operation (executes via Synthetix v3)
+   * Add an open short position operation (executes via Avantis)
    * @param ticker - Trading pair (e.g., 'ETH/USDC', 'BTC/USDC')
    * @param size - Position size
    * @param leverage - Leverage multiplier
    * @param options - Additional options
-   * @param options.exchange - Protocol to use (recommended: 'synthetix-v3')
+   * @param options.exchange - Protocol to use (recommended: 'avantis')
    */
   openShort(
     ticker: string,
@@ -208,10 +208,10 @@ export class StrategyBuilder {
   }
   
   /**
-   * Add a close long position operation (executes via Synthetix v3)
+   * Add a close long position operation (executes via Avantis)
    * @param ticker - Trading pair (e.g., 'ETH/USDC', 'BTC/USDC')
    * @param options - Additional options
-   * @param options.exchange - Protocol to use (recommended: 'synthetix-v3')
+   * @param options.exchange - Protocol to use (recommended: 'avantis')
    */
   closeLong(
     ticker: string,
@@ -244,10 +244,10 @@ export class StrategyBuilder {
   }
   
   /**
-   * Add a close short position operation (executes via Synthetix v3)
+   * Add a close short position operation (executes via Avantis)
    * @param ticker - Trading pair (e.g., 'ETH/USDC', 'BTC/USDC')
    * @param options - Additional options
-   * @param options.exchange - Protocol to use (recommended: 'synthetix-v3')
+   * @param options.exchange - Protocol to use (recommended: 'avantis')
    */
   closeShort(
     ticker: string,
@@ -280,10 +280,10 @@ export class StrategyBuilder {
   }
   
   /**
-   * Add a funding rate check operation (queries Synthetix v3)
+   * Add a funding rate check operation (queries Avantis)
    * @param ticker - Trading pair (e.g., 'ETH/USDC', 'BTC/USDC')
    * @param options - Additional options
-   * @param options.exchange - Protocol to use (recommended: 'synthetix-v3')
+   * @param options.exchange - Protocol to use (recommended: 'avantis')
    */
   checkFundingRate(
     ticker: string,

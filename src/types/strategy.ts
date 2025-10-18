@@ -92,7 +92,7 @@ export interface BaseOperationParams {
   /** 
    * Protocol to execute on
    * - '1inch-fusion' for spot trading (SPOT_BUY, SPOT_SELL)
-   * - 'synthetix-v3' for perpetuals (OPEN_LONG, OPEN_SHORT, CLOSE_LONG, CLOSE_SHORT, CHECK_FUNDING_RATE)
+   * - 'avantis' for perpetuals (OPEN_LONG, OPEN_SHORT, CLOSE_LONG, CLOSE_SHORT, CHECK_FUNDING_RATE)
    * See src/config/protocols.ts for available protocols
    */
   exchange?: string;
