@@ -70,7 +70,7 @@ describe('BTCDeltaNeutralStrategy', () => {
             const serialized = strategy.serialize();
             const parsed = JSON.parse(serialized);
 
-            parsed.operations.forEach((op: any) => {
+            parsed.operations.forEach((op: { type: string; order: number; params: unknown }) => {
                 expect(op).toHaveProperty('type');
                 expect(op).toHaveProperty('order');
                 expect(op).toHaveProperty('params');
@@ -159,7 +159,7 @@ describe('BTCDeltaNeutralStrategy', () => {
             expect(parsed.operations).toBeDefined();
             expect(parsed.operations.length).toBe(3);
 
-            parsed.operations.forEach((op: any) => {
+            parsed.operations.forEach((op: { type: string; order: number; params: unknown }) => {
                 expect(op.type).toBeDefined();
                 expect(op.order).toBeDefined();
                 expect(op.params).toBeDefined();
