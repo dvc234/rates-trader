@@ -43,3 +43,5 @@ next-env.d.ts
 .kiro/specs/defi-strategy-platform/tasks.md
 .kiro/specs/defi-strategy-platform/requirements.md
 .kiro/specs/defi-strategy-platform/design.md
+.vscode/settings.json
+.env.local
