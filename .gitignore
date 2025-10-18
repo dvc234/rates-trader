@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /.idea/
+.kiro/specs/defi-strategy-platform/tasks.md
+.kiro/specs/defi-strategy-platform/requirements.md
+.kiro/specs/defi-strategy-platform/design.md

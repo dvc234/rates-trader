@@ -3,6 +3,20 @@
 import { useEffect, useState } from "react";
 import { useAppKit } from "@reown/appkit/react";
 import { useAccount, useDisconnect, useChainId, useSwitchChain } from "wagmi";
+/**
+ * iExec DataProtector SDK imports
+ * 
+ * IExecDataProtector: Main SDK class for initializing DataProtector with Web3 provider
+ * IExecDataProtectorCore: Core API for protecting data and managing access grants
+ * ProtectedData: Type representing encrypted data stored on iExec infrastructure
+ * GrantedAccess: Type representing access permissions granted to apps/users
+ * 
+ * DataProtector enables:
+ * - Encrypting sensitive data and storing it securely
+ * - Granting granular access to specific apps and users
+ * - Monetizing data access with RLC token pricing
+ * - Revoking access when needed
+ */
 import {
   IExecDataProtector,
   IExecDataProtectorCore,
@@ -37,12 +51,46 @@ export default function Home() {
   const chainId = useChainId();
   const { switchChain } = useSwitchChain();
 
+  /**
+   * DataProtector State Management
+   * 
+   * dataProtectorCore: Initialized DataProtector API instance
+   * - Created after wallet connection with Web3 provider
+   * - Provides protectData() and grantAccess() methods
+   * - Null until wallet is connected
+   * 
+   * REUSABLE PATTERN: This initialization pattern can be extracted into a service
+   * for strategy purchase functionality
+   */
   const [dataProtectorCore, setDataProtectorCore] =
     useState<IExecDataProtectorCore | null>(null);
+  
+  /**
+   * Data Protection Form State
+   * 
+   * dataToProtect: User input for data to be encrypted
+   * - name: Human-readable identifier for the protected data
+   * - data: Actual content to encrypt (can be any JSON-serializable object)
+   * 
+   * REUSABLE PATTERN: For strategy purchase, this would contain:
+   * - name: Strategy name
+   * - data: Serialized strategy operations + metadata
+   */
   const [dataToProtect, setDataToProtect] = useState({
     name: "",
     data: "",
   });
+  
+  /**
+   * Protected Data Result
+   * 
+   * Contains metadata about successfully protected data:
+   * - address: Unique identifier for the protected data (like an NFT address)
+   * - name: The name provided during protection
+   * - owner: Wallet address that owns the protected data
+   * 
+   * REUSABLE PATTERN: For strategy purchase, this address serves as proof of ownership
+   */
   const [protectedData, setProtectedData] = useState<ProtectedData>();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -52,7 +100,23 @@ export default function Home() {
     42161: "0xd5054a18565c4a9e5c1aa3ceb53258bd59d4c78c", // Arbitrum One
   } as const;
 
-  // Grant Access form data
+  /**
+   * Grant Access Form State
+   * 
+   * Manages parameters for granting access to protected data:
+   * - protectedDataAddress: Address of the protected data to grant access to
+   * - authorizedApp: iExec app address that can access the data (TEE executor)
+   * - authorizedUser: Wallet address of user who can access (0x0000... for any user)
+   * - pricePerAccess: Cost in nRLC (nano RLC) for each access
+   * - numberOfAccess: How many times the data can be accessed
+   * 
+   * REUSABLE PATTERN: For strategy purchase, this enables:
+   * - Seller grants access to buyer after RLC payment
+   * - authorizedApp = TEE executor app address
+   * - authorizedUser = buyer's wallet address
+   * - pricePerAccess = strategy price in nRLC
+   * - numberOfAccess = unlimited executions (high number)
+   */
   const [grantAccessData, setGrantAccessData] = useState({
     protectedDataAddress: "",
     authorizedApp: "",
@@ -60,6 +124,19 @@ export default function Home() {
     pricePerAccess: 0,
     numberOfAccess: 1,
   });
+  
+  /**
+   * Granted Access Result
+   * 
+   * Contains details about successfully granted access:
+   * - dataset: Protected data address
+   * - datasetprice: Price per access in nRLC
+   * - volume: Number of accesses granted
+   * - apprestrict: Authorized app address
+   * - requesterrestrict: Authorized user address
+   * 
+   * REUSABLE PATTERN: This serves as proof that a user has purchased a strategy
+   */
   const [grantedAccess, setGrantedAccess] = useState<GrantedAccess>();
   const [isGrantingAccess, setIsGrantingAccess] = useState(false);
 
@@ -107,15 +184,38 @@ export default function Home() {
     return `https://explorer.iex.ec/${explorerSlug}/${type}/${address}`;
   };
 
+  /**
+   * DataProtector Initialization Effect
+   * 
+   * Initializes DataProtector when wallet is connected:
+   * 1. Gets Web3 provider from wagmi connector
+   * 2. Creates IExecDataProtector instance with provider
+   * 3. Extracts core API for protectData() and grantAccess()
+   * 
+   * Configuration:
+   * - allowExperimentalNetworks: true - Enables testnet support (Arbitrum Sepolia)
+   * 
+   * REUSABLE PATTERN: This initialization should be extracted into a service class:
+   * - StrategyDataProtectorService.initialize(provider)
+   * - Returns initialized dataProtectorCore
+   * - Can be reused across marketplace and execution components
+   * 
+   * Dependencies: Re-initializes when wallet connection changes
+   */
   useEffect(() => {
     const initializeDataProtector = async () => {
       if (isConnected && connector) {
         try {
+          // Get EIP-1193 provider from wagmi connector
           const provider =
             (await connector.getProvider()) as import("ethers").Eip1193Provider;
+          
+          // Initialize DataProtector with Web3 provider
           const dataProtector = new IExecDataProtector(provider, {
-            allowExperimentalNetworks: true,
+            allowExperimentalNetworks: true, // Required for Arbitrum Sepolia
           });
+          
+          // Extract core API for data operations
           setDataProtectorCore(dataProtector.core);
         } catch (error) {
           console.error("Failed to initialize data protector:", error);
@@ -126,17 +226,51 @@ export default function Home() {
     initializeDataProtector();
   }, [isConnected, connector]);
 
+  /**
+   * Grant Access to Protected Data
+   * 
+   * Grants permission for a specific app and/or user to access protected data.
+   * This is a critical step in the strategy purchase flow.
+   * 
+   * Flow:
+   * 1. User submits grant access form
+   * 2. DataProtector creates an on-chain access grant
+   * 3. Authorized app can now access the encrypted data in TEE
+   * 4. Access can be monetized with RLC pricing
+   * 
+   * Parameters:
+   * - protectedData: Address of the protected data (from protectData result)
+   * - authorizedApp: iExec app address (TEE executor) that can access data
+   * - authorizedUser: Wallet address that can trigger access (0x0000... = anyone)
+   * - pricePerAccess: Cost in nRLC for each access (0 = free)
+   * - numberOfAccess: Maximum number of times data can be accessed
+   * - onStatusUpdate: Callback for transaction progress updates
+   * 
+   * REUSABLE PATTERN: For strategy purchase:
+   * - Strategy seller calls this after buyer pays RLC
+   * - protectedData = encrypted strategy operations address
+   * - authorizedApp = TEE strategy executor app address
+   * - authorizedUser = buyer's wallet address
+   * - pricePerAccess = 0 (already paid upfront)
+   * - numberOfAccess = 999999 (unlimited executions)
+   * 
+   * Returns: GrantedAccess object with access details
+   * - Can be used to verify ownership before execution
+   * - Contains all restriction parameters for validation
+   */
   const grantDataAccess = async (event: React.FormEvent) => {
     event.preventDefault();
     if (dataProtectorCore) {
       setIsGrantingAccess(true);
       try {
+        // Call DataProtector grantAccess API
         const result = await dataProtectorCore.grantAccess({
           protectedData: grantAccessData.protectedDataAddress,
           authorizedApp: grantAccessData.authorizedApp,
           authorizedUser: grantAccessData.authorizedUser,
           pricePerAccess: grantAccessData.pricePerAccess,
           numberOfAccess: grantAccessData.numberOfAccess,
+          // Progress callback for UX feedback
           onStatusUpdate: ({
             title,
             isDone,
@@ -151,27 +285,72 @@ export default function Home() {
         setGrantedAccess(result);
       } catch (error) {
         console.error("Error granting access:", error);
+        // REUSABLE PATTERN: Add user-friendly error handling here
       } finally {
         setIsGrantingAccess(false);
       }
     }
   };
 
+  /**
+   * Protect Data with DataProtector
+   * 
+   * Encrypts and stores data on iExec infrastructure.
+   * This is the first step in creating purchasable strategies.
+   * 
+   * Flow:
+   * 1. User provides name and data to protect
+   * 2. DataProtector encrypts the data
+   * 3. Encrypted data is stored on iExec infrastructure
+   * 4. Returns protected data address (unique identifier)
+   * 
+   * Parameters:
+   * - name: Human-readable identifier for the protected data
+   * - data: Object containing the actual data to encrypt
+   *   - Can be any JSON-serializable object
+   *   - In this demo: { email: string }
+   * 
+   * REUSABLE PATTERN: For strategy creation:
+   * - name: Strategy name (e.g., "Funding Rate Arbitrage Strategy")
+   * - data: {
+   *     operations: serializedOperations, // Array of strategy operations
+   *     metadata: {
+   *       description: "Strategy description",
+   *       riskLevel: "medium",
+   *       aprRange: { min: 5, max: 15 },
+   *       version: "1.0.0"
+   *     }
+   *   }
+   * 
+   * Returns: ProtectedData object
+   * - address: Unique identifier (used for granting access)
+   * - name: The name provided
+   * - owner: Wallet address that created the protected data
+   * 
+   * Security: Data is encrypted client-side before transmission
+   * Only authorized apps in TEE can decrypt the data
+   */
   const protectData = async (event: { preventDefault: () => void }) => {
     event.preventDefault();
     if (dataProtectorCore) {
       setIsLoading(true);
       try {
+        // Call DataProtector protectData API
         const protectedData = await dataProtectorCore.protectData({
           name: dataToProtect.name,
           data: {
+            // Data object can contain any JSON-serializable content
             email: dataToProtect.data,
+            // REUSABLE PATTERN: For strategies, include:
+            // operations: serializedStrategyOperations,
+            // metadata: { description, riskLevel, aprRange, etc. }
           },
         });
         console.log("Protected Data:", protectedData);
         setProtectedData(protectedData);
       } catch (error) {
         console.error("Error protecting data:", error);
+        // REUSABLE PATTERN: Add user-friendly error handling here
       } finally {
         setIsLoading(false);
       }
