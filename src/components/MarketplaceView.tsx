@@ -23,6 +23,8 @@ interface MarketplaceViewProps {
   onPurchase?: (strategyId: string) => void;
   /** Callback when a strategy is executed */
   onExecute?: (strategyId: string) => void;
+  /** ID of strategy currently being purchased (for loading state) */
+  purchasingStrategyId?: string | null;
 }
 
 /**
@@ -37,7 +39,8 @@ interface MarketplaceViewProps {
  */
 export default function MarketplaceView({
   onPurchase,
-  onExecute
+  onExecute,
+  purchasingStrategyId
 }: MarketplaceViewProps) {
   // State management for strategies and loading
   const [strategies, setStrategies] = useState<Strategy[]>([]);
@@ -240,6 +243,7 @@ export default function MarketplaceView({
             strategy={strategy}
             onPurchase={handlePurchase}
             onExecute={handleExecute}
+            isLoading={purchasingStrategyId === strategy.id}
           />
         ))}
       </div>
