@@ -39,7 +39,7 @@ export class MockStrategy implements Strategy {
     this.description = 'A simple test strategy that executes mock operations in the TEE to validate the execution pipeline. No real trades are executed.';
     this.risk = 'low';
     this.apr = { min: 0, max: 0 };
-    this.price = '1'; // 1 RLC for testing
+    this.price = '0.01'; // 0.01 RLC for testing
     this.isOwned = isOwned;
     
     // Define mock operations that will execute in TEE

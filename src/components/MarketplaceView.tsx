@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Strategy } from '@/types/strategy';
-import { MockStrategy } from '@/strategies/MockStrategy';
+import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy } from '@/strategies';
 import StrategyCard from './StrategyCard';
 
 /**
@@ -49,7 +49,7 @@ export default function MarketplaceView({
 
   /**
    * Load available strategies on component mount
-   * Currently loads the mock strategy as the primary option
+   * Loads all available strategies from the strategy library
    */
   useEffect(() => {
     const loadStrategies = async () => {
@@ -60,12 +60,14 @@ export default function MarketplaceView({
         // Simulate API call delay for realistic loading state
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Create mock strategy instance
+        // Create strategy instances
         // In production, this would fetch from an API or smart contract
         const mockStrategy = new MockStrategy(false);
+        const btcStrategy = new BTCDeltaNeutralStrategy(false);
+        const ethStrategy = new ETHDeltaNeutralStrategy(false);
         
-        // Set strategies array with mock strategy as primary option
-        setStrategies([mockStrategy]);
+        // Set strategies array with all available strategies
+        setStrategies([mockStrategy, btcStrategy, ethStrategy]);
       } catch (err) {
         console.error('Failed to load strategies:', err);
         setError('Failed to load strategies. Please try again.');

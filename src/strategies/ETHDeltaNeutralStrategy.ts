@@ -36,7 +36,7 @@ export class ETHDeltaNeutralStrategy implements Strategy {
     this.description = 'Captures ETH funding rate profits while maintaining delta neutral exposure. Low risk market-neutral strategy on Base.';
     this.risk = 'low';
     this.apr = { min: 15, max: 45 };
-    this.price = '50'; // 50 RLC
+    this.price = '0.01'; // 0.01 RLC for testing
     this.isOwned = isOwned;
     
     const builder = new StrategyBuilder();
