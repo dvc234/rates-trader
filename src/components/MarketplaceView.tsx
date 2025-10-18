@@ -44,12 +44,12 @@ export default function MarketplaceView({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Get wallet connection status
-  const { isConnected } = useAccount();
+  // Get wallet connection status and address
+  const { isConnected, address } = useAccount();
 
   /**
    * Load available strategies on component mount
-   * Loads all available strategies from the strategy library
+   * Loads all available strategies and checks ownership status
    */
   useEffect(() => {
     const loadStrategies = async () => {
@@ -60,11 +60,18 @@ export default function MarketplaceView({
         // Simulate API call delay for realistic loading state
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Create strategy instances
+        // Get purchased strategies for connected wallet (if any)
+        let purchasedIds: string[] = [];
+        if (isConnected && address) {
+          const storageKey = `purchased_strategies_${address.toLowerCase()}`;
+          purchasedIds = JSON.parse(localStorage.getItem(storageKey) || '[]') as string[];
+        }
+        
+        // Create strategy instances with ownership status
         // In production, this would fetch from an API or smart contract
-        const mockStrategy = new MockStrategy(false);
-        const btcStrategy = new BTCDeltaNeutralStrategy(false);
-        const ethStrategy = new ETHDeltaNeutralStrategy(false);
+        const mockStrategy = new MockStrategy(purchasedIds.includes('mock-strategy-001'));
+        const btcStrategy = new BTCDeltaNeutralStrategy(purchasedIds.includes('btc-delta-neutral-001'));
+        const ethStrategy = new ETHDeltaNeutralStrategy(purchasedIds.includes('eth-delta-neutral-001'));
         
         // Set strategies array with all available strategies
         setStrategies([mockStrategy, btcStrategy, ethStrategy]);
@@ -77,7 +84,7 @@ export default function MarketplaceView({
     };
 
     loadStrategies();
-  }, []);
+  }, [isConnected, address]);
 
   /**
    * Handles strategy purchase action

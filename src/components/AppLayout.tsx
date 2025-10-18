@@ -18,8 +18,10 @@ import wagmiNetworks from '@/config/wagmiNetworks';
  * Props for the AppLayout component
  */
 interface AppLayoutProps {
-  /** Content to render in the main area */
-  children?: React.ReactNode;
+  /** Content to render in the marketplace tab */
+  marketplaceContent?: React.ReactNode;
+  /** Content to render in the my strategies tab */
+  myStrategiesContent?: React.ReactNode;
 }
 
 /**
@@ -34,7 +36,7 @@ type TabType = 'marketplace' | 'my-strategies';
  * - Network selector
  * - Mobile-responsive layout
  */
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout({ marketplaceContent, myStrategiesContent }: AppLayoutProps) {
   // Active tab state management
   const [activeTab, setActiveTab] = useState<TabType>('marketplace');
   
@@ -211,22 +213,29 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* Tab Content Area - Mobile-responsive layout */}
         <div className="bg-white rounded-b-xl border border-gray-200 border-t-0 p-6 sm:p-8 min-h-[500px]">
-          {/* Render children if provided, otherwise show placeholder */}
-          {children ? (
-            children
+          {/* Render content based on active tab */}
+          {activeTab === 'marketplace' ? (
+            marketplaceContent || (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  Marketplace
+                </h3>
+                <p className="text-gray-600">
+                  Browse and purchase encrypted trading strategies
+                </p>
+              </div>
+            )
           ) : (
-            <div className="text-center py-12">
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                {activeTab === 'marketplace'
-                  ? 'Marketplace'
-                  : 'My Strategies'}
-              </h3>
-              <p className="text-gray-600">
-                {activeTab === 'marketplace'
-                  ? 'Browse and purchase encrypted trading strategies'
-                  : 'View and execute your purchased strategies'}
-              </p>
-            </div>
+            myStrategiesContent || (
+              <div className="text-center py-12">
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  My Strategies
+                </h3>
+                <p className="text-gray-600">
+                  View and execute your purchased strategies
+                </p>
+              </div>
+            )
           )}
         </div>
       </div>
