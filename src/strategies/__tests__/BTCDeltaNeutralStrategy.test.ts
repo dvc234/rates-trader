@@ -17,7 +17,7 @@ describe('BTCDeltaNeutralStrategy', () => {
             expect(strategy.risk).toBe('low');
             expect(strategy.apr.min).toBe(15);
             expect(strategy.apr.max).toBe(45);
-            expect(strategy.price).toBe('50');
+            expect(strategy.price).toBe('0.01');
             expect(strategy.isOwned).toBe(false);
         });
 

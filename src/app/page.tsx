@@ -210,16 +210,18 @@ export default function Home() {
   return (
     <div>
       {/* Global notification area for purchase feedback */}
-      {/* Positioned at top of screen for visibility */}
+      {/* Positioned at top of screen for visibility with responsive sizing */}
+      {/* Notifications slide in from top with fade animation */}
       {purchaseError && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg">
-            <div className="flex items-start gap-3">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4 animate-fadeIn">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 shadow-lg">
+            <div className="flex items-start gap-2 sm:gap-3">
               <svg
                 className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -228,15 +230,16 @@ export default function Home() {
                   d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-red-800 mb-1">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-red-800 mb-1">
                   Purchase Failed
                 </h3>
-                <p className="text-sm text-red-700">{purchaseError}</p>
+                <p className="text-xs sm:text-sm text-red-700 break-words">{purchaseError}</p>
               </div>
               <button
                 onClick={() => setPurchaseError(null)}
-                className="text-red-400 hover:text-red-600 transition-colors"
+                className="text-red-400 hover:text-red-600 transition-colors flex-shrink-0"
+                aria-label="Close notification"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -248,14 +251,15 @@ export default function Home() {
       )}
       
       {purchaseSuccess && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4">
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 shadow-lg">
-            <div className="flex items-start gap-3">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full px-4 animate-fadeIn">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4 shadow-lg">
+            <div className="flex items-start gap-2 sm:gap-3">
               <svg
                 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
+                aria-hidden="true"
               >
                 <path
                   strokeLinecap="round"
@@ -264,15 +268,16 @@ export default function Home() {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-green-800 mb-1">
+              <div className="flex-1 min-w-0">
+                <h3 className="text-xs sm:text-sm font-medium text-green-800 mb-1">
                   Purchase Successful
                 </h3>
-                <p className="text-sm text-green-700">{purchaseSuccess}</p>
+                <p className="text-xs sm:text-sm text-green-700 break-words">{purchaseSuccess}</p>
               </div>
               <button
                 onClick={() => setPurchaseSuccess(null)}
-                className="text-green-400 hover:text-green-600 transition-colors"
+                className="text-green-400 hover:text-green-600 transition-colors flex-shrink-0"
+                aria-label="Close notification"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

@@ -4,6 +4,18 @@
   --color-primary: #183ee9;
 }
 
+/**
+ * Global Button Styles
+ * 
+ * Primary buttons: Main actions (execute, purchase)
+ * Secondary buttons: Alternative actions (disconnect, cancel)
+ * 
+ * Features:
+ * - Smooth transitions for hover states
+ * - Focus ring for accessibility
+ * - Disabled state styling
+ * - Loading state support
+ */
 button,
 a {
   @apply cursor-pointer;
@@ -19,12 +31,31 @@ a.secondary {
   @apply rounded-lg inline-flex items-center justify-center gap-1.5 text-sm font-medium whitespace-nowrap transition-colors duration-300 ease-out focus-within:ring-primary/50 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 bg-gray-800 text-white hover:bg-gray-700 h-11 min-w-24 px-6 py-3;
 }
 
+/**
+ * Global Input Styles
+ * 
+ * Features:
+ * - Consistent border and focus states
+ * - Placeholder styling
+ * - Disabled state styling
+ * - Error state (aria-invalid)
+ * - File input styling
+ */
 input {
   @apply file:text-gray-50 placeholder:text-gray-300 selection:bg-primary selection:text-gray-900 border-gray-800 flex h-9 w-full min-w-0 rounded-md border bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm;
   @apply focus-visible:border-gray-800 focus-visible:ring-primary/50 focus-visible:ring-[3px];
   @apply aria-invalid:ring-red-500/20 dark:aria-invalid:ring-red-500/40 aria-invalid:border-red-500;
 }
 
+/**
+ * Global Select Styles
+ * 
+ * Features:
+ * - Custom dropdown arrow
+ * - Consistent border and focus states
+ * - Disabled state styling
+ * - Cursor pointer for better UX
+ */
 select,
 .chain-selector {
   @apply border-gray-800 pr-8 flex h-9 min-w-0 rounded-md border bg-white px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50;
@@ -33,4 +64,44 @@ select,
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
   background-position: right 0.5rem center;
   background-size: 1.5em 1.5em;
+}
+
+/**
+ * Smooth Scrolling
+ * Improves UX when navigating between sections
+ */
+html {
+  scroll-behavior: smooth;
+}
+
+/**
+ * Loading Animation
+ * Used for skeleton loaders and loading states
+ */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/**
+ * Fade In Animation
+ * Used for content that loads dynamically
+ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }

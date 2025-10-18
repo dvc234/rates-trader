@@ -22,7 +22,7 @@ import type { Strategy, StrategyConfig } from '@/types/strategy';
 import StrategyConfigForm from './StrategyConfigForm';
 import ExecutionStatusDisplay from './ExecutionStatusDisplay';
 import { IExecExecutionService } from '@/services/IExecExecutionService';
-import { getStrategyDataProtectorService } from '@/services/StrategyDataProtectorService';
+import { sanitizeErrorMessage } from '@/utils/security';
 
 /**
  * Props for the StrategyExecutionModal component
@@ -221,7 +221,8 @@ export default function StrategyExecutionModal({
     } catch (error: any) {
       console.error('[ExecutionModal] Execution failed:', error);
       setExecutionStatus('failed');
-      setExecutionError(error.message || 'Failed to execute strategy');
+      // Security: Sanitize error message before displaying to user
+      setExecutionError(sanitizeErrorMessage(error));
       setIsExecuting(false);
     }
   };
@@ -281,7 +282,8 @@ export default function StrategyExecutionModal({
       } catch (error: any) {
         console.error('[ExecutionModal] Status polling error:', error);
         setExecutionStatus('failed');
-        setExecutionError(error.message || 'Failed to get execution status');
+        // Security: Sanitize error message before displaying to user
+        setExecutionError(sanitizeErrorMessage(error));
         setIsExecuting(false);
       }
     };
@@ -316,34 +318,36 @@ export default function StrategyExecutionModal({
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
-      {/* Backdrop */}
+      {/* Backdrop - Click to close (if not executing) */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity backdrop-blur-sm"
         onClick={handleClose}
+        aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          {/* Header */}
-          <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">Execute Strategy</h2>
-              <p className="text-sm text-gray-600 mt-1">{strategy.name}</p>
+      {/* Modal - Responsive sizing and positioning */}
+      <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+        <div className="relative bg-white rounded-xl shadow-xl max-w-2xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto animate-fadeIn">
+          {/* Header - Sticky with responsive padding */}
+          <div className="sticky top-0 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between z-10 shadow-sm">
+            <div className="flex-1 min-w-0 pr-4">
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900 truncate">Execute Strategy</h2>
+              <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">{strategy.name}</p>
             </div>
             <button
               onClick={handleClose}
               disabled={isExecuting}
-              className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="text-gray-400 hover:text-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+              aria-label="Close modal"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
 
-          {/* Content */}
-          <div className="px-6 py-6">
+          {/* Content - Responsive padding */}
+          <div className="px-4 sm:px-6 py-4 sm:py-6">
             {/* Configuration Form - Only show if not executing */}
             {executionStatus === 'idle' && (
               <>
@@ -353,26 +357,66 @@ export default function StrategyExecutionModal({
                   disabled={isExecuting}
                 />
 
-                {/* Error Message */}
+                {/* Error Message - Responsive styling */}
                 {executionError && (
-                  <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-sm text-red-700">{executionError}</p>
+                  <div className="mt-4 bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 animate-fadeIn">
+                    <div className="flex items-start gap-2">
+                      <svg
+                        className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                      <p className="text-xs sm:text-sm text-red-700 break-words">{executionError}</p>
+                    </div>
                   </div>
                 )}
 
-                {/* Action Buttons */}
-                <div className="mt-6 flex gap-3">
+                {/* Action Buttons - Responsive layout */}
+                <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleExecute}
                     disabled={isExecuting}
-                    className="primary flex-1"
+                    className="primary flex-1 text-sm sm:text-base"
+                    aria-label="Execute strategy"
                   >
-                    {isExecuting ? 'Executing...' : 'Execute Strategy'}
+                    {isExecuting ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Executing...
+                      </span>
+                    ) : (
+                      'Execute Strategy'
+                    )}
                   </button>
                   <button
                     onClick={handleResetConfig}
                     disabled={isExecuting}
-                    className="secondary"
+                    className="secondary text-sm sm:text-base"
+                    aria-label="Reset configuration"
                   >
                     Reset
                   </button>
@@ -391,7 +435,11 @@ export default function StrategyExecutionModal({
             {/* Close Button - Show after execution completes */}
             {(executionStatus === 'completed' || executionStatus === 'failed') && (
               <div className="mt-6">
-                <button onClick={handleClose} className="primary w-full">
+                <button 
+                  onClick={handleClose} 
+                  className="primary w-full text-sm sm:text-base"
+                  aria-label="Close modal"
+                >
                   Close
                 </button>
               </div>

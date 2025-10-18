@@ -24,6 +24,16 @@
 
 import type { StrategyConfig, ExecutionResult } from '@/types/strategy';
 import type { StrategyDataProtectorService } from './StrategyDataProtectorService';
+import {
+  validateAddress,
+  validateStrategyId,
+  validateTaskId,
+  validateStrategyConfig,
+  sanitizeErrorMessage,
+  sanitizeErrorForLogging,
+  rateLimiter,
+  type SecurityValidationResult,
+} from '@/utils/security';
 
 /**
  * Configuration for iExec TEE execution
@@ -197,9 +207,44 @@ export class IExecExecutionService {
         this.ensureInitialized();
 
         try {
+            // Security: Validate all inputs before processing
+            const strategyIdValidation = validateStrategyId(strategyId);
+            if (!strategyIdValidation.isValid) {
+                return {
+                    success: false,
+                    error: sanitizeErrorMessage(strategyIdValidation.error),
+                };
+            }
+
+            const addressValidation = validateAddress(userAddress);
+            if (!addressValidation.isValid) {
+                return {
+                    success: false,
+                    error: sanitizeErrorMessage(addressValidation.error),
+                };
+            }
+
+            const configValidation = validateStrategyConfig(config);
+            if (!configValidation.isValid) {
+                return {
+                    success: false,
+                    error: sanitizeErrorMessage(configValidation.error),
+                };
+            }
+
+            // Security: Rate limiting to prevent abuse
+            // Allow max 10 executions per user per hour
+            const rateLimitKey = `execute_${addressValidation.sanitizedValue}`;
+            if (!rateLimiter.checkLimit(rateLimitKey, 10, 60 * 60 * 1000)) {
+                return {
+                    success: false,
+                    error: 'Rate limit exceeded. Please try again later.',
+                };
+            }
+
             console.log('[IExecExecution] Starting strategy execution:', {
-                strategyId,
-                userAddress,
+                strategyId: strategyIdValidation.sanitizedValue,
+                userAddress: addressValidation.sanitizedValue,
                 executionMode: config.executionMode,
                 capitalAllocation: config.capitalAllocation,
             });
@@ -208,7 +253,10 @@ export class IExecExecutionService {
             // This ensures only strategy owners can execute
             // Throws error if user doesn't own the strategy
             console.log('[IExecExecution] Verifying strategy ownership...');
-            await this.dataProtectorService!.verifyStrategyAccess(strategyId, userAddress);
+            await this.dataProtectorService!.verifyStrategyAccess(
+                strategyIdValidation.sanitizedValue!,
+                addressValidation.sanitizedValue!
+            );
             console.log('[IExecExecution] Ownership verified');
 
             // Step 2: Get protected data address for this strategy
@@ -248,9 +296,10 @@ export class IExecExecutionService {
                 taskId,
             };
         } catch (error: any) {
-            console.error('[IExecExecution] Execution failed:', error);
+            // Security: Log sanitized error (removes sensitive data)
+            console.error('[IExecExecution] Execution failed:', sanitizeErrorForLogging(error));
 
-            // Handle specific error cases
+            // Handle specific error cases with sanitized messages
             if (error.message?.includes('does not own strategy')) {
                 return {
                     success: false,
@@ -265,9 +314,11 @@ export class IExecExecutionService {
                 };
             }
 
+            // Security: Sanitize error message before returning to user
+            // This prevents exposure of sensitive data like private keys, paths, etc.
             return {
                 success: false,
-                error: error.message || 'Strategy execution failed. Please try again.',
+                error: sanitizeErrorMessage(error),
             };
         }
     }
@@ -519,17 +570,18 @@ export class IExecExecutionService {
         this.ensureInitialized();
 
         try {
-            console.log('[IExecExecution] Checking task status:', taskId);
-
-            // Validate task ID format
-            if (!taskId || !taskId.startsWith('0x')) {
-                console.error('[IExecExecution] Invalid task ID format:', taskId);
+            // Security: Validate task ID format
+            const taskIdValidation = validateTaskId(taskId);
+            if (!taskIdValidation.isValid) {
+                console.error('[IExecExecution] Invalid task ID:', sanitizeErrorMessage(taskIdValidation.error));
                 return {
                     status: 'failed',
                     taskId,
-                    error: 'Invalid task ID format',
+                    error: sanitizeErrorMessage(taskIdValidation.error!),
                 };
             }
+
+            console.log('[IExecExecution] Checking task status:', taskIdValidation.sanitizedValue);
 
             // TODO: Integrate with actual iExec SDK
             // This is a placeholder implementation for development/testing
@@ -654,14 +706,16 @@ export class IExecExecutionService {
             };
             */
         } catch (error) {
-            console.error('[IExecExecution] Failed to get task status:', error);
+            // Security: Log sanitized error
+            console.error('[IExecExecution] Failed to get task status:', sanitizeErrorForLogging(error));
 
             // Never throw - always return a status object
             // This ensures the UI can handle errors gracefully
+            // Security: Sanitize error message before returning
             return {
                 status: 'failed',
                 taskId,
-                error: error instanceof Error ? error.message : 'Failed to get task status',
+                error: sanitizeErrorMessage(error),
             };
         }
     }

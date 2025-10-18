@@ -22,6 +22,13 @@
 
 import { IExecDataProtector } from '@iexec/dataprotector';
 import type { Strategy } from '@/types/strategy';
+import {
+  validateAddress,
+  validateStrategyId,
+  sanitizeErrorMessage,
+  sanitizeErrorForLogging,
+  rateLimiter,
+} from '@/utils/security';
 
 /**
  * Configuration for iExec TEE application
@@ -321,7 +328,29 @@ export class StrategyDataProtectorService {
     this.ensureInitialized();
 
     try {
-      console.log('[DataProtector] Checking ownership:', { strategyId, userAddress });
+      // Security: Validate inputs
+      const strategyIdValidation = validateStrategyId(strategyId);
+      if (!strategyIdValidation.isValid) {
+        console.error('[DataProtector] Invalid strategy ID:', sanitizeErrorMessage(strategyIdValidation.error));
+        return {
+          isOwner: false,
+          protectedDataAddress: undefined,
+        };
+      }
+
+      const addressValidation = validateAddress(userAddress);
+      if (!addressValidation.isValid) {
+        console.error('[DataProtector] Invalid user address:', sanitizeErrorMessage(addressValidation.error));
+        return {
+          isOwner: false,
+          protectedDataAddress: undefined,
+        };
+      }
+
+      console.log('[DataProtector] Checking ownership:', { 
+        strategyId: strategyIdValidation.sanitizedValue, 
+        userAddress: addressValidation.sanitizedValue 
+      });
 
       // Query Data Protector for protected data where user has been granted access
       // This is different from querying by owner - we want to find data the user can ACCESS
@@ -399,7 +428,8 @@ export class StrategyDataProtectorService {
         isOwner: false,
       };
     } catch (error) {
-      console.error('[DataProtector] Ownership check failed:', error);
+      // Security: Log sanitized error
+      console.error('[DataProtector] Ownership check failed:', sanitizeErrorForLogging(error));
       
       // On error, assume no ownership for security
       // This prevents potential exploits where errors might be used to bypass checks
@@ -520,20 +550,44 @@ export class StrategyDataProtectorService {
   ): Promise<void> {
     this.ensureInitialized();
 
-    console.log('[DataProtector] Verifying strategy access:', { strategyId, userAddress });
+    // Security: Validate inputs
+    const strategyIdValidation = validateStrategyId(strategyId);
+    if (!strategyIdValidation.isValid) {
+      throw new Error(sanitizeErrorMessage(strategyIdValidation.error));
+    }
+
+    const addressValidation = validateAddress(userAddress);
+    if (!addressValidation.isValid) {
+      throw new Error(sanitizeErrorMessage(addressValidation.error));
+    }
+
+    // Security: Rate limiting to prevent abuse
+    // Allow max 20 verification checks per user per minute
+    const rateLimitKey = `verify_${addressValidation.sanitizedValue}`;
+    if (!rateLimiter.checkLimit(rateLimitKey, 20, 60 * 1000)) {
+      throw new Error('Rate limit exceeded. Please try again later.');
+    }
+
+    console.log('[DataProtector] Verifying strategy access:', { 
+      strategyId: strategyIdValidation.sanitizedValue, 
+      userAddress: addressValidation.sanitizedValue 
+    });
 
     // Check ownership via Data Protector
-    const ownership = await this.checkStrategyOwnership(strategyId, userAddress);
+    const ownership = await this.checkStrategyOwnership(
+      strategyIdValidation.sanitizedValue!,
+      addressValidation.sanitizedValue!
+    );
 
     if (!ownership.isOwner) {
       // User does not own this strategy
       // Prevent access to encrypted operations and TEE execution
+      // Security: Don't expose internal details in error message
       const error = new Error(
-        `Access denied: User ${userAddress} does not own strategy ${strategyId}. ` +
-        'Please purchase the strategy before attempting to execute it.'
+        'Access denied: You must own this strategy to execute it. Please purchase it first.'
       );
       
-      console.error('[DataProtector] Access denied:', error.message);
+      console.error('[DataProtector] Access denied for user:', addressValidation.sanitizedValue);
       throw error;
     }
 

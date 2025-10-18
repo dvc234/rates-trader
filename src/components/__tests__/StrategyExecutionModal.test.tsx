@@ -324,7 +324,7 @@ describe('StrategyExecutionModal', () => {
       });
 
       // Try to close modal
-      const closeButton = screen.getByRole('button', { name: '' });
+      const closeButton = screen.getByRole('button', { name: /close modal/i });
       fireEvent.click(closeButton);
 
       // Modal should not close

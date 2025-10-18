@@ -75,8 +75,8 @@ describe('AppLayout', () => {
     it('should render both tab buttons', () => {
       render(<AppLayout />);
       
-      expect(screen.getByRole('button', { name: /Marketplace/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /My Strategies/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /marketplace/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /my strategies/i })).toBeInTheDocument();
     });
 
     it('should have sticky navigation bar', () => {
@@ -91,7 +91,7 @@ describe('AppLayout', () => {
     it('should show marketplace tab as active by default', () => {
       render(<AppLayout />);
       
-      const marketplaceTab = screen.getByRole('button', { name: /Marketplace/i });
+      const marketplaceTab = screen.getByRole('tab', { name: /marketplace/i });
       expect(marketplaceTab).toHaveClass('text-primary', 'border-b-2', 'border-primary');
     });
 
@@ -99,7 +99,7 @@ describe('AppLayout', () => {
       const user = userEvent.setup();
       render(<AppLayout />);
       
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       await user.click(myStrategiesTab);
       
       expect(myStrategiesTab).toHaveClass('text-primary', 'border-b-2', 'border-primary');
@@ -110,11 +110,11 @@ describe('AppLayout', () => {
       render(<AppLayout />);
       
       // Click My Strategies first
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       await user.click(myStrategiesTab);
       
       // Click Marketplace
-      const marketplaceTab = screen.getByRole('button', { name: /Marketplace/i });
+      const marketplaceTab = screen.getByRole('tab', { name: /marketplace/i });
       await user.click(marketplaceTab);
       
       expect(marketplaceTab).toHaveClass('text-primary', 'border-b-2', 'border-primary');
@@ -124,8 +124,8 @@ describe('AppLayout', () => {
       const user = userEvent.setup();
       render(<AppLayout />);
       
-      const marketplaceTab = screen.getByRole('button', { name: /Marketplace/i });
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const marketplaceTab = screen.getByRole('tab', { name: /marketplace/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       
       await user.click(myStrategiesTab);
       
@@ -148,7 +148,7 @@ describe('AppLayout', () => {
       
       render(<AppLayout myStrategiesContent={myStrategiesContent} />);
       
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       await user.click(myStrategiesTab);
       
       expect(screen.getByText('My Strategies Content')).toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('AppLayout', () => {
         />
       );
       
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       await user.click(myStrategiesTab);
       
       expect(screen.queryByText('Marketplace Content')).not.toBeInTheDocument();
@@ -300,7 +300,7 @@ describe('AppLayout', () => {
       render(<AppLayout />);
       
       const label = screen.getByText('Chain:');
-      expect(label).toHaveClass('hidden', 'sm:block');
+      expect(label).toHaveClass('hidden', 'md:block');
     });
   });
 
@@ -308,7 +308,7 @@ describe('AppLayout', () => {
     it('should render shopping cart icon for Marketplace tab', () => {
       const { container } = render(<AppLayout />);
       
-      const marketplaceTab = screen.getByRole('button', { name: /Marketplace/i });
+      const marketplaceTab = screen.getByRole('tab', { name: /marketplace/i });
       const svg = marketplaceTab.querySelector('svg');
       
       expect(svg).toBeInTheDocument();
@@ -317,7 +317,7 @@ describe('AppLayout', () => {
     it('should render document icon for My Strategies tab', () => {
       const { container } = render(<AppLayout />);
       
-      const myStrategiesTab = screen.getByRole('button', { name: /My Strategies/i });
+      const myStrategiesTab = screen.getByRole('tab', { name: /my strategies/i });
       const svg = myStrategiesTab.querySelector('svg');
       
       expect(svg).toBeInTheDocument();
