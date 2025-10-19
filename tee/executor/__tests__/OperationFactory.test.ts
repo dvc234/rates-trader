@@ -185,4 +185,161 @@ describe('OperationFactory', () => {
         .toThrow('Failed to deserialize operation at index 1');
     });
   });
+  
+  describe('CheckFundingRateOperation deserialization', () => {
+    it('should deserialize a valid CheckFundingRateOperation', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'BTC/USD',
+              minProfitableRate: 0.01,
+              estimatedGasCostUSD: '50'
+            }
+          }
+        ]
+      });
+      
+      const operations = OperationFactory.deserialize(serialized);
+      
+      expect(operations).toHaveLength(1);
+      expect(operations[0].type).toBe(OperationType.CHECK_FUNDING_RATE);
+      expect(operations[0].order).toBe(1);
+    });
+    
+    it('should deserialize CheckFundingRateOperation with default gas cost', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'ETH/USD',
+              minProfitableRate: 0.005
+              // estimatedGasCostUSD not provided, should default to '50'
+            }
+          }
+        ]
+      });
+      
+      const operations = OperationFactory.deserialize(serialized);
+      
+      expect(operations).toHaveLength(1);
+      expect(operations[0].type).toBe(OperationType.CHECK_FUNDING_RATE);
+    });
+    
+    it('should accept numeric gas cost and convert to string', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'BTC/USD',
+              minProfitableRate: 0.01,
+              estimatedGasCostUSD: 75 // number instead of string
+            }
+          }
+        ]
+      });
+      
+      const operations = OperationFactory.deserialize(serialized);
+      
+      expect(operations).toHaveLength(1);
+      expect(operations[0].type).toBe(OperationType.CHECK_FUNDING_RATE);
+    });
+    
+    it('should throw error for missing pair parameter', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              minProfitableRate: 0.01
+              // pair missing
+            }
+          }
+        ]
+      });
+      
+      expect(() => OperationFactory.deserialize(serialized))
+        .toThrow('CheckFundingRateOperation requires "pair" parameter of type string');
+    });
+    
+    it('should throw error for empty pair parameter', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: '',
+              minProfitableRate: 0.01
+            }
+          }
+        ]
+      });
+      
+      expect(() => OperationFactory.deserialize(serialized))
+        .toThrow('CheckFundingRateOperation requires "pair" parameter of type string');
+    });
+    
+    it('should throw error for missing minProfitableRate parameter', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'BTC/USD'
+              // minProfitableRate missing
+            }
+          }
+        ]
+      });
+      
+      expect(() => OperationFactory.deserialize(serialized))
+        .toThrow('CheckFundingRateOperation requires "minProfitableRate" parameter of type number');
+    });
+    
+    it('should throw error for minProfitableRate out of range', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'BTC/USD',
+              minProfitableRate: 1.5 // > 1.0
+            }
+          }
+        ]
+      });
+      
+      expect(() => OperationFactory.deserialize(serialized))
+        .toThrow('CheckFundingRateOperation "minProfitableRate" must be between 0 and 1.0');
+    });
+    
+    it('should throw error for invalid estimatedGasCostUSD type', () => {
+      const serialized = JSON.stringify({
+        operations: [
+          {
+            type: OperationType.CHECK_FUNDING_RATE,
+            order: 1,
+            params: {
+              pair: 'BTC/USD',
+              minProfitableRate: 0.01,
+              estimatedGasCostUSD: true // invalid type
+            }
+          }
+        ]
+      });
+      
+      expect(() => OperationFactory.deserialize(serialized))
+        .toThrow('CheckFundingRateOperation "estimatedGasCostUSD" must be a string or number');
+    });
+  });
 });

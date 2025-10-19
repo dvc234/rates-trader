@@ -19,6 +19,11 @@ vi.mock('wagmi', () => ({
     address: '0x1234567890123456789012345678901234567890',
     isConnected: true,
   })),
+  useChainId: vi.fn(() => 8453), // Default to Base mainnet
+  useSwitchChain: vi.fn(() => ({
+    switchChain: vi.fn().mockResolvedValue(undefined),
+    isPending: false,
+  })),
 }));
 
 // Mock localStorage

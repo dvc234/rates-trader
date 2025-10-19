@@ -14,3 +14,4 @@ export {
   OperationError 
 } from './OperationTypes';
 export { MockOperation } from './MockOperation';
+export { CheckFundingRateOperation } from './CheckFundingRateOperation';

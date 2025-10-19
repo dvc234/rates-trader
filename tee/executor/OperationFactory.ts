@@ -1,6 +1,7 @@
 import { IOperation } from '../operations/IOperation';
 import { OperationType } from '../operations/OperationTypes';
 import { MockOperation } from '../operations/MockOperation';
+import { CheckFundingRateOperation } from '../operations/CheckFundingRateOperation';
 
 /**
  * Serialized operation data structure.
@@ -170,10 +171,14 @@ export class OperationFactory {
         // - delay: number (optional, default 1000) - delay in milliseconds
         return this.createMockOperation(op);
       
+      case OperationType.CHECK_FUNDING_RATE:
+        // CheckFundingRateOperation parameters:
+        // - pair: string (required) - trading pair to check (e.g., 'BTC/USD')
+        // - minProfitableRate: number (required) - minimum funding rate threshold
+        // - estimatedGasCostUSD: string (optional, default '50') - estimated gas cost
+        return this.createCheckFundingRateOperation(op);
+      
       // Future operation types will be added here as they are implemented:
-      // case OperationType.CHECK_FUNDING_RATE:
-      //   return this.createCheckFundingRateOperation(op);
-      // 
       // case OperationType.OPEN_PERPETUAL_SHORT:
       //   return this.createOpenPerpetualShortOperation(op);
       // 
@@ -212,5 +217,61 @@ export class OperationFactory {
     
     // Instantiate and return the MockOperation
     return new MockOperation(op.order, message, delay);
+  }
+  
+  /**
+   * Creates a CheckFundingRateOperation instance from serialized data.
+   * 
+   * This helper method extracts and validates the parameters specific to
+   * CheckFundingRateOperation. It ensures that:
+   * - Required parameters (pair, minProfitableRate) are present and valid
+   * - Optional parameters (estimatedGasCostUSD) have sensible defaults
+   * - Parameter types are correct
+   * 
+   * The CheckFundingRateOperation is used to determine if the current funding
+   * rate on a perpetual DEX is profitable enough to execute the strategy.
+   * 
+   * @param op - Serialized operation data
+   * @returns CheckFundingRateOperation instance
+   * @throws Error if required parameters are missing or invalid
+   */
+  private static createCheckFundingRateOperation(op: SerializedOperation): CheckFundingRateOperation {
+    // Extract and validate the pair parameter (required)
+    // This should be a trading pair like 'BTC/USD' or 'ETH/USD'
+    const pair = op.params.pair;
+    if (typeof pair !== 'string' || pair.trim().length === 0) {
+      throw new Error('CheckFundingRateOperation requires "pair" parameter of type string');
+    }
+    
+    // Extract and validate the minProfitableRate parameter (required)
+    // This should be a decimal number representing the minimum funding rate threshold
+    // Example: 0.01 = 1% = 100 basis points
+    const minProfitableRate = op.params.minProfitableRate;
+    if (typeof minProfitableRate !== 'number') {
+      throw new Error('CheckFundingRateOperation requires "minProfitableRate" parameter of type number');
+    }
+    
+    // Validate that minProfitableRate is in a reasonable range
+    if (minProfitableRate < 0 || minProfitableRate > 1.0) {
+      throw new Error('CheckFundingRateOperation "minProfitableRate" must be between 0 and 1.0');
+    }
+    
+    // Extract the estimatedGasCostUSD parameter with a default value (optional)
+    // This should be a string representing the estimated gas cost in USD
+    // Default to '50' if not provided (reasonable estimate for Base mainnet)
+    let estimatedGasCostUSD = '50';
+    if (op.params.estimatedGasCostUSD !== undefined) {
+      if (typeof op.params.estimatedGasCostUSD === 'string') {
+        estimatedGasCostUSD = op.params.estimatedGasCostUSD;
+      } else if (typeof op.params.estimatedGasCostUSD === 'number') {
+        // Convert number to string if provided as number
+        estimatedGasCostUSD = op.params.estimatedGasCostUSD.toString();
+      } else {
+        throw new Error('CheckFundingRateOperation "estimatedGasCostUSD" must be a string or number');
+      }
+    }
+    
+    // Instantiate and return the CheckFundingRateOperation
+    return new CheckFundingRateOperation(op.order, pair, minProfitableRate, estimatedGasCostUSD);
   }
 }
