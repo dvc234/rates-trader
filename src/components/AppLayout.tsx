@@ -13,6 +13,7 @@ import { useState } from 'react';
 import { useAppKit } from '@reown/appkit/react';
 import { useAccount, useDisconnect, useChainId, useSwitchChain } from 'wagmi';
 import wagmiNetworks from '@/config/wagmiNetworks';
+import DemoBanner from './DemoBanner';
 
 /**
  * Props for the AppLayout component
@@ -39,7 +40,7 @@ type TabType = 'marketplace' | 'my-strategies';
 export default function AppLayout({ marketplaceContent, myStrategiesContent }: AppLayoutProps) {
   // Active tab state management
   const [activeTab, setActiveTab] = useState<TabType>('marketplace');
-  
+
   // Wallet and network hooks
   const { open } = useAppKit();
   const { disconnectAsync } = useDisconnect();
@@ -92,6 +93,9 @@ export default function AppLayout({ marketplaceContent, myStrategiesContent }: A
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Demo Banner - Dismissible promotional banner */}
+      <DemoBanner />
+
       {/* Navigation Bar - Sticky header with wallet connection and network selector */}
       <nav className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,8 +137,8 @@ export default function AppLayout({ marketplaceContent, myStrategiesContent }: A
 
               {/* Wallet Connection Button - Responsive sizing */}
               {!isConnected ? (
-                <button 
-                  onClick={login} 
+                <button
+                  onClick={login}
                   className="primary text-xs sm:text-sm px-3 sm:px-6"
                   aria-label="Connect wallet"
                 >
@@ -142,8 +146,8 @@ export default function AppLayout({ marketplaceContent, myStrategiesContent }: A
                   <span className="sm:hidden">Connect</span>
                 </button>
               ) : (
-                <button 
-                  onClick={logout} 
+                <button
+                  onClick={logout}
                   className="secondary text-xs sm:text-sm px-3 sm:px-6"
                   aria-label="Disconnect wallet"
                 >
@@ -170,10 +174,9 @@ export default function AppLayout({ marketplaceContent, myStrategiesContent }: A
               onClick={() => handleTabChange('marketplace')}
               className={`
                 flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all duration-200
-                ${
-                  activeTab === 'marketplace'
-                    ? 'text-primary border-b-2 border-primary bg-blue-50/50'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                ${activeTab === 'marketplace'
+                  ? 'text-primary border-b-2 border-primary bg-blue-50/50'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }
               `}
               aria-label="View marketplace"
@@ -204,10 +207,9 @@ export default function AppLayout({ marketplaceContent, myStrategiesContent }: A
               onClick={() => handleTabChange('my-strategies')}
               className={`
                 flex-1 px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium transition-all duration-200
-                ${
-                  activeTab === 'my-strategies'
-                    ? 'text-primary border-b-2 border-primary bg-blue-50/50'
-                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
+                ${activeTab === 'my-strategies'
+                  ? 'text-primary border-b-2 border-primary bg-blue-50/50'
+                  : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }
               `}
               aria-label="View my strategies"

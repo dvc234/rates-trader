@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Strategy } from '@/types/strategy';
-import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy, FundingRatesStrategy } from '@/strategies';
+import { MockStrategy, DemoRealStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy, FundingRatesStrategy } from '@/strategies';
 import StrategyCard from './StrategyCard';
 
 /**
@@ -73,12 +73,14 @@ export default function MarketplaceView({
         // Create strategy instances with ownership status
         // In production, this would fetch from an API or smart contract
         const mockStrategy = new MockStrategy(purchasedIds.includes('mock-strategy-001'));
+        const demoRealStrategy = new DemoRealStrategy(purchasedIds.includes('demo-real-strategy-001'));
         const btcStrategy = new BTCDeltaNeutralStrategy(purchasedIds.includes('btc-delta-neutral-001'));
         const ethStrategy = new ETHDeltaNeutralStrategy(purchasedIds.includes('eth-delta-neutral-001'));
         const fundingRatesStrategy = new FundingRatesStrategy(purchasedIds.includes('funding-rates-strategy-001'));
         
         // Set strategies array with all available strategies
-        setStrategies([mockStrategy, btcStrategy, ethStrategy, fundingRatesStrategy]);
+        // Demo strategy first for visibility
+        setStrategies([demoRealStrategy, mockStrategy, btcStrategy, ethStrategy, fundingRatesStrategy]);
       } catch (err) {
         console.error('Failed to load strategies:', err);
         setError('Failed to load strategies. Please try again.');

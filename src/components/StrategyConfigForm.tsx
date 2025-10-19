@@ -100,14 +100,14 @@ export default function StrategyConfigForm({
 }: StrategyConfigFormProps) {
   // Local state for validation errors
   const [errors, setErrors] = useState<ValidationErrors>({});
-  
+
   // State for gas cost estimates
   const [gasEstimates, setGasEstimates] = useState<GasEstimates>({
     estimatedCostUSD: '0.00',
     estimatedGasUnits: '0',
     gasPriceGwei: '0'
   });
-  
+
   // State for funding rate data (optional feature)
   const [fundingRate, setFundingRate] = useState<FundingRateData>({
     rate: 0,
@@ -142,20 +142,20 @@ export default function StrategyConfigForm({
       const operationGas = 100000;
       const operationCount = 3; // Typical for funding rate strategy
       const estimatedGasUnits = baseGas + (operationGas * operationCount);
-      
+
       // Estimate gas price on Base network
       // Base typically has very low gas prices (~0.001 Gwei)
       // For estimation, we use a conservative 0.01 Gwei
       const gasPriceGwei = 0.01;
-      
+
       // Calculate gas cost in ETH
       // 1 Gwei = 10^-9 ETH
       const gasCostETH = (estimatedGasUnits * gasPriceGwei) / 1e9;
-      
+
       // Convert to USD (estimate ETH at $3000)
       const ethPriceUSD = 3000;
       const gasCostUSD = gasCostETH * ethPriceUSD;
-      
+
       setGasEstimates({
         estimatedCostUSD: gasCostUSD.toFixed(2),
         estimatedGasUnits: estimatedGasUnits.toString(),
@@ -171,7 +171,7 @@ export default function StrategyConfigForm({
       });
     }
   };
-  
+
   /**
    * Fetch current funding rates for perpetual positions
    * 
@@ -185,19 +185,19 @@ export default function StrategyConfigForm({
     if (!showFundingRates || !strategyId) {
       return;
     }
-    
+
     setFundingRate(prev => ({ ...prev, isLoading: true, error: undefined }));
-    
+
     try {
       // TODO: In production, fetch from perpetual DEX API
       // Example: Avantis, GMX, Synthetix, dYdX
       // const response = await fetch(`/api/funding-rates/${strategyId}`);
       // const data = await response.json();
-      
+
       // Mock data for demonstration
       // Positive rate means longs pay shorts (favorable for short positions)
       const mockRate = 0.0123; // 0.0123% per 8 hours
-      
+
       setFundingRate({
         rate: mockRate,
         isPositive: mockRate > 0,
@@ -213,7 +213,7 @@ export default function StrategyConfigForm({
       }));
     }
   };
-  
+
   /**
    * Validate form fields and update error state
    * 
@@ -253,19 +253,19 @@ export default function StrategyConfigForm({
         // Capital allocation is optional but recommended
         if (value && value !== '') {
           const capital = Number(value);
-          
+
           // Must be a valid positive number
           if (isNaN(capital) || capital <= 0) {
             return 'Capital allocation must be a positive number';
           }
-          
+
           // Minimum capital check: Should be at least $10 to cover gas costs
           // Gas costs on Base are typically $0.10-$0.50, but we recommend $10 minimum
           // to ensure meaningful position sizes after fees
           if (capital < 10) {
             return 'Minimum capital allocation is $10 to cover gas costs and fees';
           }
-          
+
           // Warning for very large amounts (over $100,000)
           // This is not an error, just a sanity check
           if (capital > 100000) {
@@ -369,17 +369,17 @@ export default function StrategyConfigForm({
   useEffect(() => {
     validateAll();
   }, [config.executionMode]);
-  
+
   // Estimate gas costs on mount and when capital allocation changes
   useEffect(() => {
     estimateGasCosts();
   }, [config.capitalAllocation]);
-  
+
   // Fetch funding rates on mount if enabled
   useEffect(() => {
     if (showFundingRates) {
       fetchFundingRates();
-      
+
       // Refresh funding rates every 5 minutes
       const interval = setInterval(fetchFundingRates, 5 * 60 * 1000);
       return () => clearInterval(interval);
@@ -442,9 +442,8 @@ export default function StrategyConfigForm({
       <div>
         <label
           htmlFor="spreadPercentage"
-          className={`block text-sm font-medium mb-2 ${
-            config.executionMode === 'instant' ? 'text-gray-400' : 'text-gray-700'
-          }`}
+          className={`block text-sm font-medium mb-2 ${config.executionMode === 'instant' ? 'text-gray-400' : 'text-gray-700'
+            }`}
         >
           Spread Percentage
           {config.executionMode === 'instant' && (
@@ -580,23 +579,20 @@ export default function StrategyConfigForm({
 
       {/* Current Funding Rates (Optional) */}
       {showFundingRates && (
-        <div className={`rounded-lg p-4 border ${
-          fundingRate.isPositive 
-            ? 'bg-green-50 border-green-200' 
-            : 'bg-red-50 border-red-200'
-        }`}>
+        <div className={`rounded-lg p-4 border ${fundingRate.isPositive
+          ? 'bg-green-50 border-green-200'
+          : 'bg-red-50 border-red-200'
+          }`}>
           <div className="flex items-start justify-between">
             <div>
-              <h4 className={`text-sm font-semibold mb-1 ${
-                fundingRate.isPositive ? 'text-green-900' : 'text-red-900'
-              }`}>
+              <h4 className={`text-sm font-semibold mb-1 ${fundingRate.isPositive ? 'text-green-900' : 'text-red-900'
+                }`}>
                 Current Funding Rate
               </h4>
-              <p className={`text-xs mb-2 ${
-                fundingRate.isPositive ? 'text-green-700' : 'text-red-700'
-              }`}>
-                {fundingRate.isPositive 
-                  ? 'Longs pay shorts (favorable for short positions)' 
+              <p className={`text-xs mb-2 ${fundingRate.isPositive ? 'text-green-700' : 'text-red-700'
+                }`}>
+                {fundingRate.isPositive
+                  ? 'Longs pay shorts (favorable for short positions)'
                   : 'Shorts pay longs (unfavorable for short positions)'
                 }
               </p>
@@ -608,14 +604,12 @@ export default function StrategyConfigForm({
                 <div className="text-sm text-red-600">Error</div>
               ) : (
                 <>
-                  <div className={`text-lg font-bold ${
-                    fundingRate.isPositive ? 'text-green-900' : 'text-red-900'
-                  }`}>
+                  <div className={`text-lg font-bold ${fundingRate.isPositive ? 'text-green-900' : 'text-red-900'
+                    }`}>
                     {fundingRate.isPositive ? '+' : ''}{(fundingRate.rate * 100).toFixed(4)}%
                   </div>
-                  <div className={`text-xs ${
-                    fundingRate.isPositive ? 'text-green-600' : 'text-red-600'
-                  }`}>
+                  <div className={`text-xs ${fundingRate.isPositive ? 'text-green-600' : 'text-red-600'
+                    }`}>
                     per 8 hours
                   </div>
                 </>
@@ -629,9 +623,8 @@ export default function StrategyConfigForm({
           )}
           {!fundingRate.isLoading && !fundingRate.error && (
             <div className="mt-2 pt-2 border-t border-gray-200">
-              <div className={`flex justify-between text-xs ${
-                fundingRate.isPositive ? 'text-green-700' : 'text-red-700'
-              }`}>
+              <div className={`flex justify-between text-xs ${fundingRate.isPositive ? 'text-green-700' : 'text-red-700'
+                }`}>
                 <span>Last Updated:</span>
                 <span>{new Date(fundingRate.lastUpdated).toLocaleTimeString()}</span>
               </div>
