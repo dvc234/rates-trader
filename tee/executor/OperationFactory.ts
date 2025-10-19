@@ -2,6 +2,8 @@ import { IOperation } from '../operations/IOperation';
 import { OperationType } from '../operations/OperationTypes';
 import { MockOperation } from '../operations/MockOperation';
 import { CheckFundingRateOperation } from '../operations/CheckFundingRateOperation';
+import { OpenPerpetualShortOperation } from '../operations/OpenPerpetualShortOperation';
+import { SpotBuyOperation } from '../operations/SpotBuyOperation';
 
 /**
  * Serialized operation data structure.
@@ -178,12 +180,20 @@ export class OperationFactory {
         // - estimatedGasCostUSD: string (optional, default '50') - estimated gas cost
         return this.createCheckFundingRateOperation(op);
       
-      // Future operation types will be added here as they are implemented:
-      // case OperationType.OPEN_PERPETUAL_SHORT:
-      //   return this.createOpenPerpetualShortOperation(op);
-      // 
-      // case OperationType.SPOT_BUY:
-      //   return this.createSpotBuyOperation(op);
+      case OperationType.OPEN_PERPETUAL_SHORT:
+        // OpenPerpetualShortOperation parameters:
+        // - pair: string (required) - trading pair for the short (e.g., 'BTC/USD')
+        // - capitalPercentage: number (required) - percentage of capital to allocate (0-100)
+        // - leverage: number (optional, default 1) - leverage multiplier (1-10)
+        return this.createOpenPerpetualShortOperation(op);
+      
+      case OperationType.SPOT_BUY:
+        // SpotBuyOperation parameters:
+        // - asset: string (required) - asset to buy (e.g., 'BTC', 'ETH')
+        // - capitalPercentage: number (required) - percentage of capital to allocate (0-100)
+        // - orderType: string (required) - order type ('market' or 'limit')
+        // - priceReference: string (optional) - price reference for limit orders ('short_entry_price')
+        return this.createSpotBuyOperation(op);
       
       default:
         // Unknown operation type - this helps catch typos or version mismatches
@@ -273,5 +283,133 @@ export class OperationFactory {
     
     // Instantiate and return the CheckFundingRateOperation
     return new CheckFundingRateOperation(op.order, pair, minProfitableRate, estimatedGasCostUSD);
+  }
+  
+  /**
+   * Creates an OpenPerpetualShortOperation instance from serialized data.
+   * 
+   * This helper method extracts and validates the parameters specific to
+   * OpenPerpetualShortOperation. It ensures that:
+   * - Required parameters (pair, capitalPercentage) are present and valid
+   * - Optional parameters (leverage) have sensible defaults
+   * - Parameter types are correct
+   * 
+   * The OpenPerpetualShortOperation opens a short position on a perpetual DEX
+   * as part of a funding rate arbitrage strategy. The short benefits from
+   * positive funding rates where longs pay shorts.
+   * 
+   * @param op - Serialized operation data
+   * @returns OpenPerpetualShortOperation instance
+   * @throws Error if required parameters are missing or invalid
+   */
+  private static createOpenPerpetualShortOperation(op: SerializedOperation): OpenPerpetualShortOperation {
+    // Extract and validate the pair parameter (required)
+    // This should be a trading pair like 'BTC/USD' or 'ETH/USD'
+    const pair = op.params.pair;
+    if (typeof pair !== 'string' || pair.trim().length === 0) {
+      throw new Error('OpenPerpetualShortOperation requires "pair" parameter of type string');
+    }
+    
+    // Extract and validate the capitalPercentage parameter (required)
+    // This should be a number between 0 and 100 representing the percentage
+    // of total capital to allocate to this short position
+    const capitalPercentage = op.params.capitalPercentage;
+    if (typeof capitalPercentage !== 'number') {
+      throw new Error('OpenPerpetualShortOperation requires "capitalPercentage" parameter of type number');
+    }
+    
+    // Validate that capitalPercentage is in a reasonable range
+    if (capitalPercentage <= 0 || capitalPercentage > 100) {
+      throw new Error('OpenPerpetualShortOperation "capitalPercentage" must be between 0 and 100');
+    }
+    
+    // Extract the leverage parameter with a default value (optional)
+    // Default to 1 (no leverage) if not provided
+    // Leverage should be between 1 and 10 for safety
+    let leverage = 1;
+    if (op.params.leverage !== undefined) {
+      if (typeof op.params.leverage === 'number') {
+        leverage = op.params.leverage;
+      } else {
+        throw new Error('OpenPerpetualShortOperation "leverage" must be a number');
+      }
+      
+      // Validate leverage range
+      if (leverage < 1 || leverage > 10) {
+        throw new Error('OpenPerpetualShortOperation "leverage" must be between 1 and 10');
+      }
+    }
+    
+    // Instantiate and return the OpenPerpetualShortOperation
+    return new OpenPerpetualShortOperation(op.order, pair, capitalPercentage, leverage);
+  }
+  
+  /**
+   * Creates a SpotBuyOperation instance from serialized data.
+   * 
+   * This helper method extracts and validates the parameters specific to
+   * SpotBuyOperation. It ensures that:
+   * - Required parameters (asset, capitalPercentage, orderType) are present and valid
+   * - Optional parameters (priceReference) are validated if provided
+   * - Parameter types are correct
+   * 
+   * The SpotBuyOperation executes a spot buy using 1inch Fusion to balance
+   * the short position and create a delta-neutral arbitrage position.
+   * 
+   * @param op - Serialized operation data
+   * @returns SpotBuyOperation instance
+   * @throws Error if required parameters are missing or invalid
+   */
+  private static createSpotBuyOperation(op: SerializedOperation): SpotBuyOperation {
+    // Extract and validate the asset parameter (required)
+    // This should be an asset symbol like 'BTC', 'ETH', etc.
+    const asset = op.params.asset;
+    if (typeof asset !== 'string' || asset.trim().length === 0) {
+      throw new Error('SpotBuyOperation requires "asset" parameter of type string');
+    }
+    
+    // Extract and validate the capitalPercentage parameter (required)
+    // This should be a number between 0 and 100 representing the percentage
+    // of total capital to allocate to this spot buy
+    const capitalPercentage = op.params.capitalPercentage;
+    if (typeof capitalPercentage !== 'number') {
+      throw new Error('SpotBuyOperation requires "capitalPercentage" parameter of type number');
+    }
+    
+    // Validate that capitalPercentage is in a reasonable range
+    if (capitalPercentage <= 0 || capitalPercentage > 100) {
+      throw new Error('SpotBuyOperation "capitalPercentage" must be between 0 and 100');
+    }
+    
+    // Extract and validate the orderType parameter (required)
+    // This should be either 'market' or 'limit'
+    const orderType = op.params.orderType;
+    if (typeof orderType !== 'string') {
+      throw new Error('SpotBuyOperation requires "orderType" parameter of type string');
+    }
+    
+    // Validate that orderType is one of the allowed values
+    if (orderType !== 'market' && orderType !== 'limit') {
+      throw new Error('SpotBuyOperation "orderType" must be either "market" or "limit"');
+    }
+    
+    // Extract the priceReference parameter (optional)
+    // This is only used for limit orders to reference the short entry price
+    let priceReference: 'short_entry_price' | undefined;
+    if (op.params.priceReference !== undefined) {
+      if (typeof op.params.priceReference !== 'string') {
+        throw new Error('SpotBuyOperation "priceReference" must be a string');
+      }
+      
+      // Validate that priceReference is a valid value
+      if (op.params.priceReference !== 'short_entry_price') {
+        throw new Error('SpotBuyOperation "priceReference" must be "short_entry_price" if provided');
+      }
+      
+      priceReference = op.params.priceReference as 'short_entry_price';
+    }
+    
+    // Instantiate and return the SpotBuyOperation
+    return new SpotBuyOperation(op.order, asset, capitalPercentage, orderType as 'market' | 'limit', priceReference);
   }
 }

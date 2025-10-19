@@ -142,8 +142,13 @@ async function main(): Promise<void> {
   try {
     // Read input file path from environment variable
     // iExec provides this path when launching the TEE container
-    const inputPath = process.env.IEXEC_IN || '/iexec_in/input.json';
-    const outputPath = process.env.IEXEC_OUT || '/iexec_out/result.json';
+    // Standard iExec paths: /iexec_in/iexec_in.json and /iexec_out/computed.json
+    const inputPath = process.env.IEXEC_IN 
+      ? `${process.env.IEXEC_IN}/iexec_in.json`
+      : '/iexec_in/iexec_in.json';
+    const outputPath = process.env.IEXEC_OUT 
+      ? `${process.env.IEXEC_OUT}/computed.json`
+      : '/iexec_out/computed.json';
     
     console.log('[TEE] Starting strategy execution...');
     console.log('[TEE] Input path:', inputPath);

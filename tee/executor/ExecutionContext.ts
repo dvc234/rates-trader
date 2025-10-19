@@ -132,10 +132,26 @@ export interface PerpetualService {
 /**
  * Service interface for 1inch Fusion integration.
  * Handles spot trading using 1inch's Fusion mode.
+ * 
+ * 1inch Fusion uses a resolver network that monitors orders and executes them
+ * when conditions are met. This provides:
+ * - Automatic execution when price targets are reached
+ * - No need for continuous monitoring from the caller
+ * - Better price execution through competitive resolver network
  */
 export interface OneInchService {
   /**
    * Executes a swap using 1inch Fusion.
+   * 
+   * For market orders:
+   * - Executes immediately at current market price
+   * - Returns transaction hash and execution details
+   * 
+   * For limit orders:
+   * - Creates a Fusion order with target price
+   * - Returns order ID for tracking
+   * - Fusion resolver network executes when price matches
+   * - Transaction hash available after resolver execution
    * 
    * @param params - Swap parameters
    * @returns Promise resolving to swap results
@@ -148,10 +164,16 @@ export interface OneInchService {
     wallet: SecureWallet;
     slippage: number;
   }): Promise<{
-    amountReceived: string;
-    executionPrice: string;
-    transactionHash: string;
-    gasUsed: string;
+    /** Amount of asset received (for market orders) or expected (for limit orders) */
+    amountReceived?: string;
+    /** Actual execution price (for market orders) or target price (for limit orders) */
+    executionPrice?: string;
+    /** Transaction hash (for market orders) or undefined (for pending limit orders) */
+    transactionHash?: string;
+    /** 1inch Fusion order ID (for limit orders) for tracking */
+    fusionOrderId?: string;
+    /** Gas used (for market orders) */
+    gasUsed?: string;
   }>;
 }
 

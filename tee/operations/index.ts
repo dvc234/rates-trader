@@ -15,3 +15,5 @@ export {
 } from './OperationTypes';
 export { MockOperation } from './MockOperation';
 export { CheckFundingRateOperation } from './CheckFundingRateOperation';
+export { OpenPerpetualShortOperation } from './OpenPerpetualShortOperation';
+export { SpotBuyOperation } from './SpotBuyOperation';

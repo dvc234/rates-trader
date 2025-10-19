@@ -56,14 +56,16 @@ export interface BaseNetworkConfig {
  * 
  * Environment Variables:
  * - NEXT_PUBLIC_BASE_RPC_URL: Custom RPC endpoint (optional)
- * - NEXT_PUBLIC_ONEINCH_FUSION_ADDRESS: 1inch Fusion contract
- * - NEXT_PUBLIC_PERPETUAL_DEX_ADDRESS: Perpetual DEX contract
+ * - NEXT_PUBLIC_ONEINCH_FUSION_ADDRESS: 1inch Fusion contract (optional; only if NEXT_PUBLIC_ENABLE_1INCH=true)
+ * - NEXT_PUBLIC_PERPETUAL_DEX_ADDRESS: Perpetual DEX contract (required if NEXT_PUBLIC_PERPS_PROTOCOL != 'none')
  * - NEXT_PUBLIC_UNISWAP_V3_ROUTER: Uniswap V3 Router (optional)
  * - NEXT_PUBLIC_AAVE_POOL: Aave Pool contract (optional)
+ * - NEXT_PUBLIC_ENABLE_1INCH: 'true' to require 1inch address, else optional
+ * - NEXT_PUBLIC_PERPS_PROTOCOL: perps protocol key, e.g., 'avantis' | 'gmx' | 'synthetix' | 'dydx' | 'none'
  * 
  * Contract Address Sources:
  * - 1inch Fusion: https://docs.1inch.io/docs/fusion-swap/introduction
- * - Perpetual DEXs: Protocol-specific documentation (GMX, Synthetix, dYdX)
+ * - Perpetual DEXs: Protocol-specific documentation (GMX, Synthetix, dYdX, Avantis)
  * - Uniswap V3: https://docs.uniswap.org/contracts/v3/reference/deployments
  * - Aave: https://docs.aave.com/developers/deployed-contracts/v3-mainnet
  * 
@@ -127,10 +129,9 @@ export function validateBaseNetworkConfig(): {
   const missing: string[] = [];
   
   // Check required addresses
-  if (!baseNetworkConfig.contracts.oneInchFusion) {
-    missing.push('NEXT_PUBLIC_ONEINCH_FUSION_ADDRESS');
-  }
-  
+  // 1inch Fusion uses multiple contracts/resolvers; not enforcing a single address here.
+  // If you intend to use on-chain Fusion contracts directly, set NEXT_PUBLIC_ONEINCH_FUSION_ADDRESS and validate elsewhere.
+
   if (!baseNetworkConfig.contracts.perpetualDex) {
     missing.push('NEXT_PUBLIC_PERPETUAL_DEX_ADDRESS');
   }
