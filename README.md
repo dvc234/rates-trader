@@ -304,50 +304,8 @@ cd contracts
 
 ---
 
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Submit a pull request
-
----
-
-## 📖 Learn More
-
-### iExec Resources
-- [iExec Documentation](https://docs.iex.ec/)
-- [iExec DataProtector](https://docs.iex.ec/references/dataProtector)
-- [iExec iApp Generator](https://docs.iex.ec/references/iapp-generator)
-- [iExec Discord](https://discord.gg/iexec)
-
-### Web3 Resources
-- [Reown AppKit](https://docs.reown.com/appkit/next/core/installation)
-- [Wagmi Documentation](https://wagmi.sh/)
-- [Viem Documentation](https://viem.sh/)
-
-### Framework Resources
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-
----
-
 ## 📝 License
 
 This project is open source and available under the MIT License.
-
----
-
-## 🆘 Support
-
-Need help?
-
-1. Check the documentation in the `/docs` folder
-2. Review [IEXEC_SETUP.md](./IEXEC_SETUP.md) for setup issues
-3. Join the [iExec Discord](https://discord.gg/iexec)
-4. Open an issue on GitHub
 
 ---
