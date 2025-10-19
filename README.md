@@ -1,149 +1,353 @@
-# 🚀 iExec Next.js Starter - Decentralized Data Protection
+# 🚀 DeFi Strategy Platform - Confidential Execution with iExec
 
-A minimal starter to quickly get started with iExec DataProtector and Next.js.
+A decentralized platform for creating, purchasing, and executing DeFi strategies with confidential execution powered by iExec TEE (Trusted Execution Environment).
 
 ---
 
-## 📋 About
+## 📋 What is This?
 
-This project is a simple starter that allows you to:
+This platform enables users to:
 
-- Connect a Web3 wallet
-- Protect data with iExec DataProtector
-- Grant access to protected data
-- Discover basic iExec features
+- **Browse** pre-built DeFi strategies (Delta Neutral, Funding Rate Arbitrage, etc.)
+- **Purchase** strategies securely using RLC tokens
+- **Execute** strategies confidentially in a TEE environment
+- **Track** positions and performance across multiple protocols
 
-**Included features:**
-- ✅ Wallet connection with Reown AppKit (WalletConnect)
-- ✅ Data protection with iExec DataProtector
-- ✅ Multi-chain support (iExec Sidechain, Arbitrum)
-- ✅ Simple and clean user interface
+**Key Features:**
+- ✅ Confidential strategy execution (operations hidden in TEE)
+- ✅ Multi-protocol support (1inch Fusion, Avantis, and more)
+- ✅ Encrypted strategy data with iExec DataProtector
+- ✅ Cross-chain architecture (Arbitrum for payments, Base for execution)
 - ✅ Built with Next.js, TypeScript, and Tailwind CSS
 
 ---
 
 ## 🛠️ Quick Start
 
-1. **Clone the project:**
-```bash
-git clone https://github.com/iExecBlockchainComputing/iexec-nextjs-starter.git
-cd iexec-nextjs-starter
-```
+### Prerequisites
 
-2. **Install dependencies:**
+- Node.js 18+ and npm
+- A Web3 wallet (MetaMask, Coinbase Wallet, etc.)
+- Basic understanding of DeFi concepts
+
+### 1. Clone and Install
+
 ```bash
+git clone <your-repo-url>
+cd <project-folder>
 npm install
 ```
 
-3. **Create your Reown project:**
-   - Go to [https://cloud.reown.com/app](https://cloud.reown.com/app)
-   - Create a project and choose **AppKit** → **Next.js**
+### 2. Get Your Reown Project ID
 
-4. **Configure environment variables:**
+1. Go to [https://cloud.reown.com/app](https://cloud.reown.com/app)
+2. Create a new project
+3. Select **AppKit** → **Next.js**
+4. Copy your Project ID
+
+### 3. Configure Environment Variables
+
+Create a `.env.local` file in the root directory:
+
 ```bash
-# Create a .env.local file
-NEXT_PUBLIC_REOWN_PROJECT_ID=your_reown_project_id
+# Required: Wallet Connection
+NEXT_PUBLIC_REOWN_PROJECT_ID=your_reown_project_id_here
+
+# Required: Base Network RPC
+NEXT_PUBLIC_BASE_RPC_URL=https://mainnet.base.org
+
+# Optional: Enable/Disable Features
+NEXT_PUBLIC_ENABLE_1INCH=false
+NEXT_PUBLIC_PERPS_PROTOCOL=avantis
 ```
 
-5. **Start the project:**
+**For Development/Testing:**
+- The above configuration is sufficient to run the app with mock strategies
+- No DEX addresses or TEE setup required initially
+
+**For Production (Real Strategies):**
+- See [IEXEC_SETUP.md](./IEXEC_SETUP.md) for TEE configuration
+- See [contracts/DEPLOYMENT_GUIDE.md](./contracts/DEPLOYMENT_GUIDE.md) for smart contract deployment
+
+### 4. Start the Development Server
+
 ```bash
 npm run dev
 ```
 
-Your app will be available at [http://localhost:3000](http://localhost:3000)
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### 5. Connect Your Wallet
+
+1. Click "Connect Wallet" in the app
+2. Select your wallet (MetaMask, Coinbase, etc.)
+3. Approve the connection
+
+You're ready to explore strategies!
 
 ---
 
-## 🧩 Compatible Wallets
+## 🎯 Usage Guide
 
-iExec Bellecour only works with these wallets:
+### For Users (Strategy Buyers)
 
-- MetaMask
-- Coinbase Wallet
-- Brave Wallet  
-- WalletConnect
-- Zerion
+1. **Browse Marketplace**
+   - View available strategies with risk/APR info
+   - Read strategy descriptions and requirements
 
-❌ Other wallets may not work with iExec SDKs on Bellecour.
+2. **Purchase a Strategy**
+   - Click "Purchase" on any strategy
+   - Approve RLC token spending
+   - Confirm transaction (strategy data is encrypted and stored)
+
+3. **Execute Your Strategy**
+   - Go to "My Strategies" tab
+   - Configure execution parameters (capital, slippage, etc.)
+   - Click "Execute" to run in TEE
+   - Monitor execution status and results
+
+### For Developers (Strategy Creators)
+
+1. **Create a Strategy**
+   - See [src/strategies/README.md](./src/strategies/README.md) for strategy development guide
+   - Use the Strategy Builder API to define operations
+   - Test with mock operations before deploying
+
+2. **Deploy TEE Executor**
+   - Follow [IEXEC_SETUP.md](./IEXEC_SETUP.md) to set up iExec TEE
+   - Build and deploy your iApp using iApp Generator
+   - Configure the app address in `.env.local`
+
+3. **Deploy Smart Contracts**
+   - Follow [contracts/DEPLOYMENT_GUIDE.md](./contracts/DEPLOYMENT_GUIDE.md)
+   - Deploy position predicates for your protocols
+   - Update contract addresses in configuration
 
 ---
 
 ## 📁 Project Structure
 
 ```
-src/
-├── app/
-│   ├── page.tsx          # Main page with iExec logic
-│   ├── layout.tsx        # Global layout
-│   └── globals.css       # Global styles
-├── components/
-│   └── WelcomeBlock.tsx  # Welcome component
-├── config/
-│   ├── wagmiConfig.ts    # Wagmi/Reown configuration
-│   └── wagmiNetworks.ts  # Supported blockchain networks
-└── context/
-    └── index.tsx         # Global providers
+├── src/
+│   ├── app/                    # Next.js app router pages
+│   ├── components/             # React components
+│   │   ├── AppLayout.tsx       # Main layout with tabs
+│   │   ├── MarketplaceView.tsx # Strategy marketplace
+│   │   ├── MyStrategiesView.tsx # User's owned strategies
+│   │   └── StrategyCard.tsx    # Strategy display card
+│   ├── strategies/             # Strategy definitions
+│   │   ├── BTCDeltaNeutralStrategy.ts
+│   │   ├── FundingRatesStrategy.ts
+│   │   └── README.md           # Strategy development guide
+│   ├── services/               # Core services
+│   │   ├── IExecExecutionService.ts      # TEE execution
+│   │   └── StrategyDataProtectorService.ts # Data encryption
+│   ├── config/                 # Configuration files
+│   └── types/                  # TypeScript types
+├── tee/                        # TEE executor code
+│   ├── executor/               # Strategy execution engine
+│   ├── operations/             # Operation handlers
+│   └── README.md               # TEE development guide
+├── contracts/                  # Smart contracts
+│   ├── AvantisPositionPredicate.sol
+│   └── DEPLOYMENT_GUIDE.md
+└── scripts/                    # Utility scripts
 ```
 
 ---
 
-## 🔍 How It Works
+## 🌐 Network Architecture
 
-### Data Protection
-1. **Connection:** Use Reown AppKit to connect your wallet
-2. **Protection:** Enter data name and content to protect
-3. **iExec:** Data is encrypted and stored via DataProtector
-4. **Result:** You receive the address and metadata of protected data
+The platform uses multiple networks for different purposes:
 
----
+### Payment Layer (Arbitrum Sepolia)
+- Strategy purchases with RLC tokens
+- Access control and ownership tracking
+- Testnet for development
 
-## 🌐 Supported Networks
+### Data Layer (iExec Bellecour)
+- Encrypted strategy data storage
+- TEE coordination and execution
+- Data Protector operations
 
-- **iExec Sidechain (Bellecour)** - Chain ID: 134
-- **Arbitrum One** - Chain ID: 42161
-- **Arbitrum Sepolia** - Chain ID: 421614
+### Execution Layer (Base Mainnet)
+- DEX interactions (1inch, Uniswap, etc.)
+- Perpetual positions (Avantis, GMX, etc.)
+- Actual strategy execution
 
----
-
-## 🚀 Next Steps
-
-This starter is intentionally minimal. You can extend it with:
-
-- More iExec features (compute, marketplace, Web3Mail)
-- Advanced data management interface
-- Protected dataset marketplace
-- Integration with other iExec services
-- Custom iExec applications
-- Data monetization features
+**Flow:**
+```
+User → Purchase (Arbitrum) → Encrypt (Bellecour) → Execute (TEE → Base) → Results
+```
 
 ---
 
-## 📚 Resources
-
-- [iExec Documentation](https://docs.iex.ec/)
-- [iExec DataProtector API](https://docs.iex.ec/references/dataProtector)
-- [Reown AppKit Documentation](https://docs.reown.com/appkit/next/core/installation)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [React Documentation](https://react.dev/)
-
----
-
-## 🔧 Development
+## 🧪 Testing
 
 ```bash
-# Development server
-npm run dev
+# Run all tests
+npm test
 
-# Build for production
-npm run build
+# Run tests in watch mode
+npm run test:watch
 
-# Start production server
-npm start
+# Run tests with UI
+npm run test:ui
 
-# Lint code
-npm run lint
+# Validate environment configuration
+npm run check:env
+
+# Check runtime dependencies
+npm run check:runtime
 ```
 
 ---
 
-**Happy coding with iExec! 🔒✨**
+## 🔒 Security Features
+
+### Confidential Execution
+- Strategy operations are encrypted with iExec DataProtector
+- Only the TEE can decrypt and execute operations
+- Users can't see the internal logic of purchased strategies
+
+### Access Control
+- Ownership verified on-chain before execution
+- Only strategy buyers can execute their purchased strategies
+- TEE validates permissions before decryption
+
+### Secure Key Management
+- User wallet keys never leave the browser
+- TEE uses isolated key management for trade execution
+- No private keys in logs or results
+
+---
+
+## 📚 Documentation
+
+### Getting Started
+- [IEXEC_SETUP.md](./IEXEC_SETUP.md) - Complete iExec TEE setup guide
+- [IEXEC_QUICK_REFERENCE.md](./IEXEC_QUICK_REFERENCE.md) - Quick reference for common tasks
+
+### Architecture
+- [PROTOCOL_ARCHITECTURE.md](./PROTOCOL_ARCHITECTURE.md) - System architecture diagrams
+- [ARCHITECTURE_DIAGRAM.md](./ARCHITECTURE_DIAGRAM.md) - Visual architecture overview
+
+### Development
+- [src/strategies/README.md](./src/strategies/README.md) - Strategy development guide
+- [src/strategies/TEE_EXECUTION_REFERENCE.md](./src/strategies/TEE_EXECUTION_REFERENCE.md) - TEE execution details
+- [tee/README.md](./tee/README.md) - TEE executor documentation
+
+### Deployment
+- [contracts/DEPLOYMENT_GUIDE.md](./contracts/DEPLOYMENT_GUIDE.md) - Smart contract deployment
+- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - Pre-launch checklist
+- [AVANTIS_DEPLOYMENT_GUIDE.md](./AVANTIS_DEPLOYMENT_GUIDE.md) - Avantis integration guide
+
+---
+
+## 🛠️ Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm start            # Start production server
+npm run lint         # Lint code
+npm test             # Run tests
+npm run test:watch   # Run tests in watch mode
+npm run test:ui      # Run tests with UI
+npm run check:env    # Validate environment variables
+npm run check:runtime # Check runtime dependencies
+```
+
+---
+
+## 🧩 Compatible Wallets
+
+The following wallets are compatible with iExec Bellecour:
+
+- ✅ MetaMask
+- ✅ Coinbase Wallet
+- ✅ Brave Wallet
+- ✅ WalletConnect
+- ✅ Zerion
+
+❌ Other wallets may not work with iExec SDKs.
+
+---
+
+## 🚀 Deployment
+
+### Frontend Deployment
+
+Deploy to Vercel, Netlify, or any Next.js hosting:
+
+```bash
+npm run build
+npm start
+```
+
+### TEE Deployment
+
+1. Build your iApp with iApp Generator
+2. Deploy to iExec network
+3. Update `NEXT_PUBLIC_IEXEC_APP_ADDRESS` in production environment
+
+See [IEXEC_SETUP.md](./IEXEC_SETUP.md) for detailed instructions.
+
+### Smart Contract Deployment
+
+Deploy position predicates and other contracts:
+
+```bash
+cd contracts
+# Follow DEPLOYMENT_GUIDE.md
+```
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please:
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes with tests
+4. Submit a pull request
+
+---
+
+## 📖 Learn More
+
+### iExec Resources
+- [iExec Documentation](https://docs.iex.ec/)
+- [iExec DataProtector](https://docs.iex.ec/references/dataProtector)
+- [iExec iApp Generator](https://docs.iex.ec/references/iapp-generator)
+- [iExec Discord](https://discord.gg/iexec)
+
+### Web3 Resources
+- [Reown AppKit](https://docs.reown.com/appkit/next/core/installation)
+- [Wagmi Documentation](https://wagmi.sh/)
+- [Viem Documentation](https://viem.sh/)
+
+### Framework Resources
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+---
+
+## 📝 License
+
+This project is open source and available under the MIT License.
+
+---
+
+## 🆘 Support
+
+Need help?
+
+1. Check the documentation in the `/docs` folder
+2. Review [IEXEC_SETUP.md](./IEXEC_SETUP.md) for setup issues
+3. Join the [iExec Discord](https://discord.gg/iexec)
+4. Open an issue on GitHub
+
+---
