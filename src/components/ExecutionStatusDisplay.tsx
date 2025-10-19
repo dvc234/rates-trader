@@ -213,69 +213,101 @@ export default function ExecutionStatusDisplay({
               </span>
             </div>
 
-            {/* Gas Used */}
-            {result.metrics?.gasUsed && (
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">Gas Used:</span>
-                <span className="text-sm font-semibold text-gray-900">
-                  {result.metrics.gasUsed} ETH
-                </span>
-              </div>
-            )}
-
-            {/* Profit Estimate */}
-            {result.metrics?.profitEstimate !== undefined && (
-              <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600">Estimated Profit:</span>
-                <span className={`text-sm font-semibold ${
-                  result.metrics.profitEstimate >= 0 ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  ${result.metrics.profitEstimate.toFixed(2)}
-                </span>
-              </div>
-            )}
-
-            {/* Funding Rates */}
+            {/* Funding Rate Used - Enhanced Display */}
             {result.metrics?.fundingRates && Object.keys(result.metrics.fundingRates).length > 0 && (
               <div className="py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600 block mb-2">Funding Rates:</span>
+                <span className="text-sm text-gray-600 block mb-2">Funding Rate Used:</span>
                 <div className="space-y-1">
                   {Object.entries(result.metrics.fundingRates).map(([pair, rate]) => (
-                    <div key={pair} className="flex justify-between text-xs">
-                      <span className="text-gray-500">{pair}:</span>
-                      <span className="font-mono text-gray-800">{(rate * 100).toFixed(4)}%</span>
+                    <div key={pair} className="flex justify-between items-center">
+                      <span className="text-xs text-gray-500">{pair}:</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-sm font-mono font-semibold ${
+                          rate >= 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {(rate * 100).toFixed(4)}%
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({rate >= 0 ? 'Long pays Short' : 'Short pays Long'})
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Positions Opened */}
+            {/* Short Position Details - Enhanced Display */}
             {result.metrics?.positions && result.metrics.positions.length > 0 && (
               <div className="py-2 border-b border-gray-100">
-                <span className="text-sm text-gray-600 block mb-2">Positions Opened:</span>
+                <span className="text-sm text-gray-600 block mb-2">Short Position Details:</span>
                 <div className="space-y-2">
                   {result.metrics.positions.map((position, index) => (
-                    <div key={index} className="bg-gray-50 rounded p-2 text-xs">
-                      <div className="flex justify-between mb-1">
-                        <span className="font-semibold text-gray-700">
-                          {position.type.toUpperCase()} {position.ticker}
+                    <div key={index} className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-3 border border-red-200">
+                      {/* Position Header */}
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
+                            {position.type.toUpperCase()}
+                          </span>
+                          <span className="font-semibold text-gray-800 text-sm">
+                            {position.ticker}
+                          </span>
+                        </div>
+                        <span className="text-xs font-semibold text-gray-600 bg-white px-2 py-1 rounded">
+                          {position.leverage}x Leverage
                         </span>
-                        <span className="text-gray-600">{position.leverage}x</span>
                       </div>
-                      <div className="flex justify-between text-gray-600">
-                        <span>Entry: ${position.entryPrice}</span>
-                        <span>Size: {position.size}</span>
+
+                      {/* Position Details Grid */}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div className="bg-white rounded p-2">
+                          <p className="text-xs text-gray-500 mb-1">Entry Price</p>
+                          <p className="text-sm font-bold text-gray-800">
+                            ${parseFloat(position.entryPrice).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded p-2">
+                          <p className="text-xs text-gray-500 mb-1">Position Size</p>
+                          <p className="text-sm font-bold text-gray-800">
+                            {position.size} {position.ticker.split('/')[0]}
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Stop Loss / Take Profit if available */}
+                      {(position.stopLoss || position.takeProfit) && (
+                        <div className="grid grid-cols-2 gap-2 mb-2">
+                          {position.stopLoss && (
+                            <div className="bg-white rounded p-2">
+                              <p className="text-xs text-gray-500 mb-1">Stop Loss</p>
+                              <p className="text-xs font-semibold text-red-600">
+                                ${parseFloat(position.stopLoss).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                          {position.takeProfit && (
+                            <div className="bg-white rounded p-2">
+                              <p className="text-xs text-gray-500 mb-1">Take Profit</p>
+                              <p className="text-xs font-semibold text-green-600">
+                                ${parseFloat(position.takeProfit).toLocaleString()}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Transaction Hash */}
                       {position.transactionHash && (
-                        <div className="mt-1">
+                        <div className="mt-2 pt-2 border-t border-red-200">
+                          <p className="text-xs text-gray-500 mb-1">Transaction:</p>
                           <a
                             href={`https://basescan.org/tx/${position.transactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 text-xs break-all"
+                            className="text-blue-600 hover:text-blue-700 text-xs font-mono break-all hover:underline"
                           >
-                            View Transaction →
+                            {position.transactionHash.slice(0, 10)}...{position.transactionHash.slice(-8)}
                           </a>
                         </div>
                       )}
@@ -285,37 +317,105 @@ export default function ExecutionStatusDisplay({
               </div>
             )}
 
-            {/* Spot Trades */}
+            {/* Spot Holding Details - Enhanced Display */}
             {result.metrics?.spotTrades && result.metrics.spotTrades.length > 0 && (
-              <div className="py-2">
-                <span className="text-sm text-gray-600 block mb-2">Spot Trades:</span>
+              <div className="py-2 border-b border-gray-100">
+                <span className="text-sm text-gray-600 block mb-2">Spot Holding Details:</span>
                 <div className="space-y-2">
                   {result.metrics.spotTrades.map((trade, index) => (
-                    <div key={index} className="bg-gray-50 rounded p-2 text-xs">
-                      <div className="flex justify-between mb-1">
-                        <span className="font-semibold text-gray-700">
-                          {trade.type.toUpperCase()} {trade.asset}
-                        </span>
-                        <span className="text-gray-600">${trade.executionPrice}</span>
+                    <div key={index} className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-3 border border-blue-200">
+                      {/* Trade Header */}
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`px-2 py-1 text-white text-xs font-bold rounded ${
+                            trade.type === 'buy' ? 'bg-green-600' : 'bg-red-600'
+                          }`}>
+                            {trade.type.toUpperCase()}
+                          </span>
+                          <span className="font-semibold text-gray-800 text-sm">
+                            {trade.asset}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-gray-600">
-                        Amount: {trade.amount}
+
+                      {/* Trade Details Grid */}
+                      <div className="grid grid-cols-2 gap-2 mb-2">
+                        <div className="bg-white rounded p-2">
+                          <p className="text-xs text-gray-500 mb-1">Execution Price</p>
+                          <p className="text-sm font-bold text-gray-800">
+                            ${parseFloat(trade.executionPrice).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded p-2">
+                          <p className="text-xs text-gray-500 mb-1">Amount</p>
+                          <p className="text-sm font-bold text-gray-800">
+                            {trade.amount} {trade.asset}
+                          </p>
+                        </div>
                       </div>
+
+                      {/* Total Value */}
+                      <div className="bg-white rounded p-2 mb-2">
+                        <p className="text-xs text-gray-500 mb-1">Total Value</p>
+                        <p className="text-sm font-bold text-gray-800">
+                          ${(parseFloat(trade.amount) * parseFloat(trade.executionPrice)).toLocaleString(undefined, {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                          })}
+                        </p>
+                      </div>
+
+                      {/* Transaction Hash */}
                       {trade.transactionHash && (
-                        <div className="mt-1">
+                        <div className="pt-2 border-t border-blue-200">
+                          <p className="text-xs text-gray-500 mb-1">Transaction:</p>
                           <a
                             href={`https://basescan.org/tx/${trade.transactionHash}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-700 text-xs break-all"
+                            className="text-blue-600 hover:text-blue-700 text-xs font-mono break-all hover:underline"
                           >
-                            View Transaction →
+                            {trade.transactionHash.slice(0, 10)}...{trade.transactionHash.slice(-8)}
                           </a>
                         </div>
                       )}
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Profit Estimate - Enhanced Display */}
+            {result.metrics?.profitEstimate !== undefined && (
+              <div className="py-2 border-b border-gray-100">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-3 border border-green-200">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Estimated Profit</p>
+                      <p className={`text-2xl font-bold ${
+                        result.metrics.profitEstimate >= 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {result.metrics.profitEstimate >= 0 ? '+' : ''}${result.metrics.profitEstimate.toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-gray-500">Based on current positions</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {result.metrics.profitEstimate >= 0 ? '📈 Profitable' : '📉 At Risk'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Gas Used */}
+            {result.metrics?.gasUsed && (
+              <div className="flex justify-between items-center py-2">
+                <span className="text-sm text-gray-600">Total Gas Used:</span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {result.metrics.gasUsed} ETH
+                </span>
               </div>
             )}
           </div>

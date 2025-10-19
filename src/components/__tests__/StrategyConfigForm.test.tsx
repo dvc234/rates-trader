@@ -128,4 +128,140 @@ describe('StrategyConfigForm', () => {
       })
     );
   });
+
+  describe('Gas Cost Estimates', () => {
+    it('displays estimated gas costs section', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      expect(screen.getByText('Estimated Gas Costs')).toBeInTheDocument();
+      expect(screen.getByText(/Approximate cost to execute this strategy/i)).toBeInTheDocument();
+    });
+
+    it('shows gas cost in USD', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      // Should display a dollar amount (format: $X.XX)
+      const gasCostElements = screen.getAllByText(/\$\d+\.\d{2}/);
+      expect(gasCostElements.length).toBeGreaterThan(0);
+    });
+
+    it('shows gas units estimate', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      // Should display gas units with "gas" text (more specific match)
+      expect(screen.getByText(/~\d+.*gas/i)).toBeInTheDocument();
+    });
+
+    it('shows gas price in Gwei', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      expect(screen.getByText(/Gas Price:/i)).toBeInTheDocument();
+      expect(screen.getByText(/Gwei/i)).toBeInTheDocument();
+    });
+
+    it('includes gas cost in configuration summary', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      expect(screen.getByText('Est. Gas Cost:')).toBeInTheDocument();
+    });
+  });
+
+  describe('Capital Allocation Validation', () => {
+    it('validates minimum capital allocation of $10', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      const capitalInput = screen.getByLabelText(/Capital Allocation/i);
+      
+      // Enter amount below minimum
+      fireEvent.change(capitalInput, { target: { value: '5' } });
+      
+      // Should show validation error
+      expect(screen.getByText(/Minimum capital allocation is \$10/i)).toBeInTheDocument();
+    });
+
+    it('accepts capital allocation above minimum', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      const capitalInput = screen.getByLabelText(/Capital Allocation/i);
+      
+      // Enter valid amount
+      fireEvent.change(capitalInput, { target: { value: '100' } });
+      
+      // Should not show validation error
+      expect(screen.queryByText(/Minimum capital allocation/i)).not.toBeInTheDocument();
+    });
+
+    it('validates positive numbers only', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      const capitalInput = screen.getByLabelText(/Capital Allocation/i);
+      
+      // Enter negative amount
+      fireEvent.change(capitalInput, { target: { value: '-100' } });
+      
+      // Should show validation error
+      expect(screen.getByText(/must be a positive number/i)).toBeInTheDocument();
+    });
+
+    it('allows empty capital allocation (optional field)', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      const capitalInput = screen.getByLabelText(/Capital Allocation/i);
+      
+      // Clear the input
+      fireEvent.change(capitalInput, { target: { value: '' } });
+      
+      // Should not show validation error
+      expect(screen.queryByText(/must be a positive number/i)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Funding Rates Display', () => {
+    it('does not show funding rates by default', () => {
+      render(<StrategyConfigForm config={mockConfig} onChange={mockOnChange} />);
+
+      expect(screen.queryByText('Current Funding Rate')).not.toBeInTheDocument();
+    });
+
+    it('shows funding rates when enabled', () => {
+      render(
+        <StrategyConfigForm 
+          config={mockConfig} 
+          onChange={mockOnChange} 
+          showFundingRates={true}
+          strategyId="test-strategy"
+        />
+      );
+
+      expect(screen.getByText('Current Funding Rate')).toBeInTheDocument();
+    });
+
+    it('displays funding rate percentage', () => {
+      render(
+        <StrategyConfigForm 
+          config={mockConfig} 
+          onChange={mockOnChange} 
+          showFundingRates={true}
+          strategyId="test-strategy"
+        />
+      );
+
+      // Should display percentage with "per 8 hours" text
+      expect(screen.getByText(/per 8 hours/i)).toBeInTheDocument();
+    });
+
+    it('shows positive funding rate indicator', () => {
+      render(
+        <StrategyConfigForm 
+          config={mockConfig} 
+          onChange={mockOnChange} 
+          showFundingRates={true}
+          strategyId="test-strategy"
+        />
+      );
+
+      // Should show explanation for positive rates
+      expect(screen.getByText(/Longs pay shorts/i)).toBeInTheDocument();
+    });
+  });
 });

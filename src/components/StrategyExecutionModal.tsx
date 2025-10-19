@@ -423,6 +423,8 @@ export default function StrategyExecutionModal({
                   config={config}
                   onChange={handleConfigChange}
                   disabled={isExecuting}
+                  strategyId={strategy.id}
+                  showFundingRates={strategy.id === 'funding-rates-strategy'}
                 />
 
                 {/* Error Message - Responsive styling */}
