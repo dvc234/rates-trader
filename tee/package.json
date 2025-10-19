@@ -8,7 +8,13 @@
     "build": "tsc",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
-    "test": "vitest --run"
+    "test": "vitest --run",
+    "docker:build": "docker build -t defi-strategy-executor:latest .",
+    "docker:build:tag": "docker build -t defi-strategy-executor:1.0.0 .",
+    "docker:test": "npm run docker:build && docker run -v $(pwd)/test-input:/iexec_in -v $(pwd)/test-output:/iexec_out defi-strategy-executor:latest",
+    "docker:push": "docker push your-dockerhub-username/defi-strategy-executor:1.0.0",
+    "iexec:deploy": "iexec app deploy --chain 134",
+    "prepare:test": "mkdir -p test-input test-output"
   },
   "keywords": [
     "iexec",

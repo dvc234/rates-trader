@@ -1,0 +1,61 @@
+{
+  "description": "DeFi Strategy Executor - Executes encrypted trading strategies in TEE",
+  "license": "MIT",
+  "author": "DeFi Strategy Platform",
+  "social": {
+    "website": "",
+    "github": ""
+  },
+  "logo": "",
+  
+  "app": {
+    "owner": "0x0000000000000000000000000000000000000000",
+    "name": "defi-strategy-executor",
+    "type": "DOCKER",
+    "multiaddr": "docker.io/your-dockerhub-username/defi-strategy-executor:1.0.0",
+    "checksum": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "mrenclave": {
+      "framework": "SCONE",
+      "version": "v5",
+      "entrypoint": "node dist/index.js",
+      "heapSize": 1073741824,
+      "fingerprint": ""
+    }
+  },
+  
+  "buy": {
+    "params": {
+      "iexec_args": "",
+      "iexec_input_files": [],
+      "iexec_result_storage_provider": "ipfs",
+      "iexec_result_storage_proxy": "https://result-proxy.iex.ec"
+    }
+  },
+  
+  "chains": {
+    "134": {
+      "host": "https://bellecour.iex.ec",
+      "hub": "0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f",
+      "sms": "https://sms.scone-prod.v8-bellecour.iex.ec",
+      "resultProxy": "https://result-proxy.iex.ec",
+      "ipfsGateway": "https://ipfs-gateway.v8-bellecour.iex.ec",
+      "bridge": {
+        "contract": "0x188A4376a1D818bF2434972Eb34eFd57102a19b7",
+        "bridgedChainId": "421614"
+      },
+      "native": false,
+      "useNative": false,
+      "flavour": "standard"
+    },
+    "1": {
+      "host": "https://mainnet.iex.ec",
+      "hub": "0x3eca1B216A7DF1C7689aEb259fFB83ADFB894E7f",
+      "sms": "https://sms.scone-prod.v8-mainnet.iex.ec",
+      "resultProxy": "https://result-proxy.iex.ec",
+      "ipfsGateway": "https://ipfs-gateway.v8-mainnet.iex.ec",
+      "native": false,
+      "useNative": false,
+      "flavour": "standard"
+    }
+  }
+}
