@@ -53,6 +53,14 @@ contract AvantisPositionPredicate {
     /// @notice Maximum price deviation allowed (1%)
     uint256 public constant MAX_PRICE_DEVIATION_BPS = 100;
     
+    /// @notice Event emitted when a short position is confirmed
+    event ShortPositionConfirmed(
+        address indexed trader,
+        uint256 indexed pairIndex,
+        uint256 tradeIndex,
+        uint256 openPrice
+    );
+    
     /**
      * @notice Constructor
      * @param _avantisTrading Address of the Avantis Trading contract
@@ -70,8 +78,8 @@ contract AvantisPositionPredicate {
      * @param pairIndex Avantis pair index (e.g., 0 for BTC/USD)
      * @param tradeIndex Trade index for this trader
      * @param expectedOpenPrice Expected entry price (1e10 precision)
-     * @return canExecute True if order can execute
-     * @return actualOpenPrice Actual confirmed entry price (1e10 precision)
+     * @return canExecute True if all validation checks pass
+     * @return actualOpenPrice Actual confirmed entry price from Avantis (1e10 precision)
      */
     function checkShortPositionConfirmed(
         address trader,
@@ -79,6 +87,11 @@ contract AvantisPositionPredicate {
         uint256 tradeIndex,
         uint256 expectedOpenPrice
     ) external view returns (bool canExecute, uint256 actualOpenPrice) {
+        // Expected price must be non-zero to prevent division by zero
+        if (expectedOpenPrice == 0) {
+            return (false, 0);
+        }
+        
         Trade memory trade = IAvantisTrading(avantisTrading).openTrades(
             trader,
             pairIndex,
@@ -115,6 +128,9 @@ contract AvantisPositionPredicate {
         if (priceDiff > maxDeviation) {
             return (false, 0);
         }
+        
+        // All checks passed - emit event and return success
+        emit ShortPositionConfirmed(trader, pairIndex, tradeIndex, trade.openPrice);
         
         return (true, trade.openPrice);
     }

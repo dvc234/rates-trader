@@ -27,6 +27,8 @@ vi.mock('wagmi', async () => {
 });
 
 // Mock strategy modules
+// Each strategy is mocked with its core properties for testing
+// The FundingRatesStrategy is the real implementation for Base mainnet
 vi.mock('@/strategies', () => ({
   MockStrategy: vi.fn().mockImplementation((isOwned) => ({
     id: 'mock-strategy-001',
@@ -55,6 +57,16 @@ vi.mock('@/strategies', () => ({
     risk: 'medium',
     apr: { min: 8, max: 20 },
     price: '8',
+    isOwned,
+    encryptedOperations: 'encrypted',
+  })),
+  FundingRatesStrategy: vi.fn().mockImplementation((isOwned) => ({
+    id: 'funding-rates-strategy-001',
+    name: 'BTC Funding Rate Arbitrage',
+    description: 'Captures funding rate profits on BTC/USDC by maintaining a delta-neutral position',
+    risk: 'medium',
+    apr: { min: 15, max: 45 },
+    price: '0.05',
     isOwned,
     encryptedOperations: 'encrypted',
   })),
@@ -137,6 +149,7 @@ describe('MarketplaceView', () => {
         expect(screen.getByText('Mock Strategy')).toBeInTheDocument();
         expect(screen.getByText('BTC Delta Neutral')).toBeInTheDocument();
         expect(screen.getByText('ETH Delta Neutral')).toBeInTheDocument();
+        expect(screen.getByText('BTC Funding Rate Arbitrage')).toBeInTheDocument();
       });
     });
 
@@ -152,6 +165,7 @@ describe('MarketplaceView', () => {
         expect(screen.getByText('A mock strategy for testing')).toBeInTheDocument();
         expect(screen.getByText('BTC funding rate arbitrage')).toBeInTheDocument();
         expect(screen.getByText('ETH funding rate arbitrage')).toBeInTheDocument();
+        expect(screen.getByText('Captures funding rate profits on BTC/USDC by maintaining a delta-neutral position')).toBeInTheDocument();
       });
     });
 
