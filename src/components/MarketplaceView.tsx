@@ -12,7 +12,7 @@
 import { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
 import { Strategy } from '@/types/strategy';
-import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy } from '@/strategies';
+import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy, FundingRatesStrategy } from '@/strategies';
 import StrategyCard from './StrategyCard';
 
 /**
@@ -75,9 +75,10 @@ export default function MarketplaceView({
         const mockStrategy = new MockStrategy(purchasedIds.includes('mock-strategy-001'));
         const btcStrategy = new BTCDeltaNeutralStrategy(purchasedIds.includes('btc-delta-neutral-001'));
         const ethStrategy = new ETHDeltaNeutralStrategy(purchasedIds.includes('eth-delta-neutral-001'));
+        const fundingRatesStrategy = new FundingRatesStrategy(purchasedIds.includes('funding-rates-strategy-001'));
         
         // Set strategies array with all available strategies
-        setStrategies([mockStrategy, btcStrategy, ethStrategy]);
+        setStrategies([mockStrategy, btcStrategy, ethStrategy, fundingRatesStrategy]);
       } catch (err) {
         console.error('Failed to load strategies:', err);
         setError('Failed to load strategies. Please try again.');

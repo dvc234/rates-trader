@@ -6,7 +6,7 @@ import AppLayout from "@/components/AppLayout";
 import MarketplaceView from "@/components/MarketplaceView";
 import MyStrategiesView from "@/components/MyStrategiesView";
 import { useDataProtector } from "@/hooks/useDataProtector";
-import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy } from "@/strategies";
+import { MockStrategy, BTCDeltaNeutralStrategy, ETHDeltaNeutralStrategy, FundingRatesStrategy } from "@/strategies";
 
 export default function Home() {
   const { address } = useAccount();
@@ -86,10 +86,11 @@ export default function Home() {
       
       // Find the strategy instance to get its serialized operations
       // We need the actual strategy object to call serialize() and purchaseStrategy()
-      let strategy: (MockStrategy | BTCDeltaNeutralStrategy | ETHDeltaNeutralStrategy) | null = null;
+      let strategy: (MockStrategy | BTCDeltaNeutralStrategy | ETHDeltaNeutralStrategy | FundingRatesStrategy) | null = null;
       
       // Map strategy ID to strategy instance
       // In production, this would fetch from an API or registry
+      // Each strategy is instantiated with isOwned=false since we're purchasing it
       switch (strategyId) {
         case 'mock-strategy-001':
           strategy = new MockStrategy(false);
@@ -99,6 +100,12 @@ export default function Home() {
           break;
         case 'eth-delta-neutral-001':
           strategy = new ETHDeltaNeutralStrategy(false);
+          break;
+        case 'funding-rates-strategy-001':
+          // Real funding rate arbitrage strategy for Base mainnet
+          // Uses Avantis for perpetual shorts and 1inch Fusion for spot buys
+          // Risk: Medium | APR: 15-45%
+          strategy = new FundingRatesStrategy(false);
           break;
         default:
           throw new Error(`Unknown strategy: ${strategyId}`);

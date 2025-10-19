@@ -5,3 +5,4 @@
 export * from './MockStrategy';
 export * from './BTCDeltaNeutralStrategy';
 export * from './ETHDeltaNeutralStrategy';
+export * from './FundingRatesStrategy';
