@@ -23,6 +23,7 @@ import StrategyConfigForm from './StrategyConfigForm';
 import ExecutionStatusDisplay from './ExecutionStatusDisplay';
 import { IExecExecutionService } from '@/services/IExecExecutionService';
 import { sanitizeErrorMessage } from '@/utils/security';
+import { useNetworkSwitch } from '@/hooks/useNetworkSwitch';
 
 /**
  * Props for the StrategyExecutionModal component
@@ -71,6 +72,10 @@ export default function StrategyExecutionModal({
   executionService
 }: StrategyExecutionModalProps) {
   const { address } = useAccount();
+  
+  // Network switching hook
+  // Used to ensure user is on Base mainnet before execution
+  const { isOnBase, getCurrentNetworkName, switchToBase, isSwitching } = useNetworkSwitch();
 
   // Configuration state
   const [config, setConfig] = useState<StrategyConfig>(DEFAULT_CONFIG);
@@ -166,10 +171,16 @@ export default function StrategyExecutionModal({
    * 
    * Execution Flow:
    * 1. Validate configuration
-   * 2. Verify ownership via Data Protector
-   * 3. Create iExec task for TEE execution
-   * 4. Start polling for status updates
-   * 5. Display results when complete
+   * 2. Check network and switch to Base if needed
+   * 3. Verify ownership via Data Protector
+   * 4. Create iExec task for TEE execution
+   * 5. Start polling for status updates
+   * 6. Display results when complete
+   * 
+   * Network Switching:
+   * - Strategy execution requires Base mainnet
+   * - User is prompted to switch if on wrong network
+   * - Execution proceeds only after successful network switch
    */
   const handleExecute = async () => {
     if (!address) {
@@ -184,6 +195,27 @@ export default function StrategyExecutionModal({
       return;
     }
 
+    // Check if user is on Base mainnet
+    // Strategy execution requires Base because:
+    // - DEX interactions (1inch Fusion) happen on Base
+    // - Perpetual shorts are opened on Base
+    // - All strategy operations execute on Base
+    if (!isOnBase()) {
+      console.log('[ExecutionModal] Wrong network detected:', getCurrentNetworkName());
+      console.log('[ExecutionModal] Prompting user to switch to Base mainnet...');
+      
+      // Prompt user to switch to Base
+      const switchResult = await switchToBase();
+      
+      if (!switchResult.success) {
+        // User cancelled or switch failed
+        setExecutionError(switchResult.error || 'Please switch to Base mainnet to execute strategies');
+        return;
+      }
+      
+      console.log('[ExecutionModal] Successfully switched to Base mainnet');
+    }
+
     try {
       setIsExecuting(true);
       setExecutionStatus('pending');
@@ -194,6 +226,7 @@ export default function StrategyExecutionModal({
         strategyId: strategy.id,
         userAddress: address,
         config,
+        network: 'Base mainnet',
       });
 
       // Execute strategy via iExec service
@@ -348,6 +381,41 @@ export default function StrategyExecutionModal({
 
           {/* Content - Responsive padding */}
           <div className="px-4 sm:px-6 py-4 sm:py-6">
+            {/* Network Indicator - Show current network */}
+            <div className={`mb-4 p-3 rounded-lg border ${
+              isOnBase() 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-yellow-50 border-yellow-200'
+            }`}>
+              <div className="flex items-center gap-2">
+                <svg 
+                  className={`w-5 h-5 ${isOnBase() ? 'text-green-600' : 'text-yellow-600'}`}
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={2} 
+                    d="M13 10V3L4 14h7v7l9-11h-7z" 
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${
+                    isOnBase() ? 'text-green-800' : 'text-yellow-800'
+                  }`}>
+                    Current Network: {getCurrentNetworkName()}
+                  </p>
+                  {!isOnBase() && (
+                    <p className="text-xs text-yellow-700 mt-1">
+                      You will be prompted to switch to Base mainnet before execution
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
             {/* Configuration Form - Only show if not executing */}
             {executionStatus === 'idle' && (
               <>
@@ -384,11 +452,31 @@ export default function StrategyExecutionModal({
                 <div className="mt-6 flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={handleExecute}
-                    disabled={isExecuting}
+                    disabled={isExecuting || isSwitching}
                     className="primary flex-1 text-sm sm:text-base"
                     aria-label="Execute strategy"
                   >
-                    {isExecuting ? (
+                    {isSwitching ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                            fill="none"
+                          />
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          />
+                        </svg>
+                        Switching Network...
+                      </span>
+                    ) : isExecuting ? (
                       <span className="flex items-center justify-center gap-2">
                         <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                           <circle

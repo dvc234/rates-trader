@@ -18,10 +18,11 @@ import {
   type AppKitNetwork,
   arbitrumSepolia,
   arbitrum,
+  base,
 } from '@reown/appkit/networks';
 
-// Re-export Arbitrum networks from Reown AppKit for convenience
-export { arbitrumSepolia, arbitrum } from '@reown/appkit/networks';
+// Re-export Arbitrum networks and Base from Reown AppKit for convenience
+export { arbitrumSepolia, arbitrum, base } from '@reown/appkit/networks';
 
 /**
  * Bellecour Network Configuration (iExec Sidechain)
@@ -68,11 +69,13 @@ export const bellecour: AppKitNetwork = {
  * - 134: Bellecour (iExec Sidechain) - Production iExec network
  * - 42161: Arbitrum One - Ethereum L2 for mainnet operations
  * - 421614: Arbitrum Sepolia - Testnet for development and testing
+ * - 8453: Base - Ethereum L2 for strategy execution on mainnet
  */
 export const explorerSlugs: Record<number, string> = {
   134: 'bellecour', // iExec Sidechain (Bellecour)
   42161: 'arbitrum-mainnet', // Arbitrum One
   421614: 'arbitrum-sepolia-testnet', // Arbitrum Sepolia
+  8453: 'base', // Base mainnet for strategy execution
 };
 
 /**
@@ -88,13 +91,18 @@ export const explorerSlugs: Record<number, string> = {
  * - bellecour: iExec operations (Data Protector, TEE coordination)
  * - arbitrumSepolia: Testnet for RLC payments and development
  * - arbitrum: Mainnet for production RLC payments (future use)
+ * - base: Base mainnet for strategy execution (DEX interactions, perpetual shorts)
  * 
- * Note: Base mainnet will be added in Phase 7 for strategy execution
+ * Network Architecture:
+ * - Payment Layer: Arbitrum networks (RLC token transactions)
+ * - Execution Layer: Base mainnet (actual strategy execution with DEXs)
+ * - iExec Layer: Bellecour (Data Protector and TEE coordination)
  */
 const wagmiNetworks = {
   bellecour,
   arbitrumSepolia,
   arbitrum,
+  base, // Base mainnet for strategy execution
 };
 
 export default wagmiNetworks;

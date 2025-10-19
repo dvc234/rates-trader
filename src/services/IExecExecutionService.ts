@@ -24,15 +24,16 @@
 
 import type { StrategyConfig, ExecutionResult } from '@/types/strategy';
 import type { StrategyDataProtectorService } from './StrategyDataProtectorService';
+import { formatBaseConfigForTEE } from '@/config/baseNetworkConfig';
 import {
-  validateAddress,
-  validateStrategyId,
-  validateTaskId,
-  validateStrategyConfig,
-  sanitizeErrorMessage,
-  sanitizeErrorForLogging,
-  rateLimiter,
-  type SecurityValidationResult,
+    validateAddress,
+    validateStrategyId,
+    validateTaskId,
+    validateStrategyConfig,
+    sanitizeErrorMessage,
+    sanitizeErrorForLogging,
+    rateLimiter,
+    type SecurityValidationResult,
 } from '@/utils/security';
 
 /**
@@ -353,16 +354,8 @@ export class IExecExecutionService {
     ): any {
         // Prepare network configuration for Base mainnet
         // The TEE will use this to connect to the blockchain
-        const networkConfig = {
-            chainId: 8453, // Base mainnet
-            rpcUrl: 'https://mainnet.base.org',
-            contracts: {
-                // Contract addresses for DEX interactions
-                // These would be configured based on the protocols used
-                oneInchFusion: process.env.NEXT_PUBLIC_ONEINCH_FUSION_ADDRESS || '',
-                perpetualDex: process.env.NEXT_PUBLIC_PERPETUAL_DEX_ADDRESS || '',
-            },
-        };
+        // Configuration includes RPC endpoint and DEX contract addresses
+        const networkConfig = formatBaseConfigForTEE();
 
         // Create TEE input structure
         // This matches the format expected by tee/index.ts
